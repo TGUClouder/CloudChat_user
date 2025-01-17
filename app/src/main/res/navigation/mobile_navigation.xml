@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/navigation_lecture">
+
+    <fragment
+        android:id="@+id/navigation_lecture"
+        android:name="com.example.cloudchat_user.ui.interactive_lecture.LectureFragment"
+        android:label="@string/title_lecture"
+        tools:layout="@layout/fragment_lecture" />
+
+    <fragment
+        android:id="@+id/navigation_workshop"
+        android:name="com.example.cloudchat_user.ui.science_workshop.WorkshopFragment"
+        android:label="@string/title_workshop"
+        tools:layout="@layout/fragment_workshop" />
+
+    <fragment
+        android:id="@+id/navigation_sanctuary"
+        android:name="com.example.cloudchat_user.ui.mind_sanctuary.SanctuaryFragment"
+        android:label="@string/title_sanctuary"
+        tools:layout="@layout/fragment_sanctuary" />
+
+    <fragment
+        android:id="@+id/navigation_account"
+        android:name="com.example.cloudchat_user.ui.my_account.AccountFragment"
+        android:label="@string/title_account"
+        tools:layout="@layout/fragment_account" />
+</navigation>

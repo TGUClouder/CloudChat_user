@@ -1,0 +1,8 @@
+<resources>
+    <!-- 这里绑定navigation view的名称 -->
+    <string name="app_name">云启乡翼孩子端</string>
+    <string name="title_lecture">互动讲题</string>
+    <string name="title_workshop">科普课堂</string>
+    <string name="title_sanctuary">心灵树洞</string>
+    <string name="title_account">个人中心</string>
+</resources>
