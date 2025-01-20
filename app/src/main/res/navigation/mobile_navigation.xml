@@ -5,24 +5,51 @@
     android:id="@+id/mobile_navigation"
     app:startDestination="@id/navigation_lecture">
 
+    <!-- Lecture Fragment -->
     <fragment
         android:id="@+id/navigation_lecture"
         android:name="com.example.cloudchat_user.ui.interactive_lecture.LectureFragment"
         android:label="@string/title_lecture"
         tools:layout="@layout/fragment_lecture" />
 
+    <!-- Workshop Fragment -->
     <fragment
         android:id="@+id/navigation_workshop"
         android:name="com.example.cloudchat_user.ui.science_workshop.WorkshopFragment"
         android:label="@string/title_workshop"
         tools:layout="@layout/fragment_workshop" />
 
+    <!-- Sanctuary Fragment -->
     <fragment
         android:id="@+id/navigation_sanctuary"
         android:name="com.example.cloudchat_user.ui.mind_sanctuary.SanctuaryFragment"
         android:label="@string/title_sanctuary"
-        tools:layout="@layout/fragment_sanctuary" />
+        tools:layout="@layout/fragment_sanctuary">
+        <!-- 跳转到 DiaryFragment -->
+        <action
+            android:id="@+id/action_sanctuary_to_diary"
+            app:destination="@id/navigation_diary" />
+        <!-- 跳转到 TreeFragment -->
+        <action
+            android:id="@+id/action_sanctuary_to_tree"
+            app:destination="@id/navigation_tree" />
+    </fragment>
 
+    <!-- Diary Fragment -->
+    <fragment
+        android:id="@+id/navigation_diary"
+        android:name="com.example.cloudchat_user.ui.mind_sanctuary.DiaryFragment"
+        android:label="@string/title_diary"
+        tools:layout="@layout/fragment_diary" />
+
+    <!-- Tree Fragment -->
+    <fragment
+        android:id="@+id/navigation_tree"
+        android:name="com.example.cloudchat_user.ui.mind_sanctuary.TreeFragment"
+        android:label="@string/title_tree"
+        tools:layout="@layout/fragment_tree" />
+
+    <!-- Account Fragment -->
     <fragment
         android:id="@+id/navigation_account"
         android:name="com.example.cloudchat_user.ui.my_account.AccountFragment"
