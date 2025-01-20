@@ -4,20 +4,65 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.mind_sanctuary.SanctuaryFragment">
-    <!--context绑定ui逻辑-->
+    android:background="@drawable/background"
+    android:fitsSystemWindows="true"
+    tools:context=".MainActivity">
 
+    <!-- 心情日记标题 -->
     <TextView
-        android:id="@+id/text_sanctuary"
-        android:layout_width="match_parent"
+        android:id="@+id/tv_diary_title"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="center"
+        android:text="心情日记"
+        android:textColor="@android:color/black"
         android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/diary_section"
+        app:layout_constraintHorizontal_bias="0.507"
+        app:layout_constraintStart_toStartOf="@id/diary_section"
+        app:layout_constraintTop_toBottomOf="@id/diary_section" />
+    <!-- 心情日记部分 -->
+    <LinearLayout
+        android:id="@+id/tree_section"
+        android:layout_width="181dp"
+        android:layout_height="210dp"
+        android:layout_marginBottom="92dp"
+        android:background="@drawable/tree"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintVertical_weight="1">
+
+    </LinearLayout>
+    <!-- 心灵树洞标题 -->
+    <TextView
+        android:id="@+id/tv_tree_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="心灵树洞"
+        android:textColor="@android:color/black"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/tree_section"
+        app:layout_constraintStart_toStartOf="@id/tree_section"
+        app:layout_constraintTop_toBottomOf="@id/tree_section" />
+    <!-- 心灵树洞部分 -->
+    <LinearLayout
+        android:id="@+id/diary_section"
+        android:layout_width="170dp"
+        android:layout_height="182dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="80dp"
+        android:background="@drawable/book"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/tree_section"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.488" />
 </androidx.constraintlayout.widget.ConstraintLayout>
