@@ -5,19 +5,4 @@
     <string name="title_workshop">科普课堂</string>
     <string name="title_sanctuary">心灵树洞</string>
     <string name="title_account">个人中心</string>
-
-    <string-array name="grade_options">
-        <item>一年级</item>
-        <item>二年级</item>
-        <item>三年级</item>
-        <item>四年级</item>
-        <item>五年级</item>
-        <item>六年级</item>
-    </string-array>
-
-    <string name="title_diary">心情日记</string>
-    <string name="title_tree">心灵树洞</string>
 </resources>
-
-
-
