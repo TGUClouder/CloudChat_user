@@ -4,55 +4,35 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import com.example.cloudchat_user.R;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.example.cloudchat_user.databinding.FragmentSanctuaryBinding;
+
 
 public class SanctuaryFragment extends Fragment {
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_sanctuary, container, false);
+    private FragmentSanctuaryBinding binding;
 
-        LinearLayout ivBook = view.findViewById(R.id.diary_section);
-        LinearLayout ivTree = view.findViewById(R.id.tree_section);
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        SanctuaryViewModel sanctuaryViewModel =
+                new ViewModelProvider(this).get(SanctuaryViewModel.class);
 
-        // 设置点击事件
-        ivBook.setOnClickListener(v -> {
-            // 添加动画效果
-            animateView(v, () -> {
-                NavController navController = Navigation.findNavController(view);
-                navController.navigate(R.id.action_sanctuary_to_diary);
-            });
-        });
+        binding = FragmentSanctuaryBinding.inflate(inflater, container, false);
+        View root = binding.getRoot();
 
-        ivTree.setOnClickListener(v -> {
-            // 添加动画效果
-            animateView(v, () -> {
-                NavController navController = Navigation.findNavController(view);
-                navController.navigate(R.id.action_sanctuary_to_tree);
-            });
-        });
-
-        return view;
+        final TextView textView = binding.textSanctuary;
+        sanctuaryViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        return root;
     }
-    private void animateView(View view, Runnable endAction) {
-        view.animate()
-                .scaleX(1.1f)
-                .scaleY(1.1f)
-                .setDuration(100)
-                .withEndAction(() -> {
-                    view.animate().scaleX(1.0f).scaleY(1.0f).setDuration(100).start();
-                    endAction.run();
-                })
-                .start();
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }
-
