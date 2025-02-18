@@ -1,8 +1,10 @@
 package com.example.cloudchat_user.ui.interactive_lecture;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
@@ -12,16 +14,29 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.DialogFragment;
 
 import com.example.cloudchat_user.R;
 import com.example.cloudchat_user.databinding.FragmentLectureBinding;
 
+import java.io.File;
+import java.io.IOException;
+
+import static android.app.Activity.RESULT_OK;
+
 public class LectureFragment extends Fragment {
 
     private FragmentLectureBinding binding;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
+    private static final int REQUEST_FILE_PICK = 3;
+    private Uri photoURI;
+    private String selectedGradeLevel;
+    private String selectedSubject;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -32,7 +47,11 @@ public class LectureFragment extends Fragment {
 
         uploadButton.setOnClickListener(v -> {
             SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
-            dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
+            if (getParentFragmentManager() != null) {
+                dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
+            } else {
+                // 处理错误情况
+            }
         });
         // 设置已接单/待接单区域的文本颜色
         TextView textView = binding.textView;
@@ -40,16 +59,109 @@ public class LectureFragment extends Fragment {
         ForegroundColorSpan blueSpan = new ForegroundColorSpan(getResources().getColor(android.R.color.holo_blue_light));
         spannableString.setSpan(blueSpan, 3, 7, 0); // 设置 "待接单" 为蓝色
         textView.setText(spannableString);
-        textView.setGravity(android.view.Gravity.CENTER); // 设置文本居中
+        textView.setGravity(Gravity.CENTER); // 设置文本居中
+
         // 设置已讲解视频区域的点击事件
-        binding.previousVideos.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showPopupWindow(v);
-            }
-        });
+        binding.previousVideos.setOnClickListener(v -> showPopupWindow(v));
 
         return root;
+    }
+
+    public void proceedWithUpload() {
+        if (selectedGradeLevel != null && selectedSubject != null) {
+            showUploadOptions();
+        } else {
+            new AlertDialog.Builder(getContext())
+                    .setMessage("请先选择年级和科目")
+                    .setPositiveButton("确定", null)
+                    .show();
+        }
+    }
+
+    private void showUploadOptions() {
+        final CharSequence[] options = {"拍照", "从图库选择", "上传附件"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择上传方式")
+                .setItems(options, (dialog, which) -> {
+                    switch (which) {
+                        case 0:
+                            dispatchTakePictureIntent();
+                            break;
+                        case 1:
+                            dispatchPickImageIntent();
+                            break;
+                        case 2:
+                            dispatchPickFileIntent();
+                            break;
+                    }
+                });
+        builder.show();
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Handle error
+            }
+            if (photoFile != null) {
+                photoURI = FileProvider.getUriForFile(getContext(),
+                        "com.example.cloudchat_user.fileprovider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    private void dispatchPickImageIntent() {
+        Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(pickPhotoIntent, REQUEST_IMAGE_PICK);
+    }
+
+    private void dispatchPickFileIntent() {
+        Intent pickFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
+        pickFileIntent.setType("*/*");
+        startActivityForResult(pickFileIntent, REQUEST_FILE_PICK);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_IMAGE_CAPTURE:
+                    // Handle the captured image
+                    break;
+                case REQUEST_IMAGE_PICK:
+                    if (data != null) {
+                        Uri selectedImage = data.getData();
+                        // Handle the selected image
+                    }
+                    break;
+                case REQUEST_FILE_PICK:
+                    if (data != null) {
+                        Uri selectedFile = data.getData();
+                        // Handle the selected file
+                    }
+                    break;
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String imageFileName = "JPEG_" + System.currentTimeMillis() + "_";
+        File storageDir = getContext().getExternalFilesDir(android.os.Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
     }
 
     private void showPopupWindow(View anchorView) {
@@ -73,6 +185,14 @@ public class LectureFragment extends Fragment {
 
         // 显示PopupWindow
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
+    }
+
+    public void setSelectedGradeLevel(String gradeLevel) {
+        this.selectedGradeLevel = gradeLevel;
+    }
+
+    public void setSelectedSubject(String subject) {
+        this.selectedSubject = subject;
     }
 
     @Override
