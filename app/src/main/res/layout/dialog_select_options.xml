@@ -30,5 +30,4 @@ android:text="X"
 android:layout_gravity="end"
 android:layout_marginTop="8dp"
 android:minHeight="48dp" />
-
     </LinearLayout>
