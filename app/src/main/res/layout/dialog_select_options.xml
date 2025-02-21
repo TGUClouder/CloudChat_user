@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/dialog_background">
+
+<Button
+android:id="@+id/selectGradeButton"
+android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="选择年级"
+    android:layout_marginTop="8dp"
+    android:minHeight="65dp" />
+
+<Button
+android:id="@+id/selectSubjectButton"
+android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="选择科目"
+    android:layout_marginTop="8dp"
+    android:minHeight="65dp" />
+
+<Button
+android:id="@+id/closeButton"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="X"
+android:layout_gravity="end"
+android:layout_marginTop="8dp"
+android:minHeight="48dp" />
+    </LinearLayout>

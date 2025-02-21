@@ -5,8 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
-    tools:context=".TreeActivity">
+    android:background="@drawable/background">
 
     <TextView
         android:id="@+id/tv_tree_heading"
@@ -67,25 +66,12 @@
         app:layout_constraintWidth_percent="0.9" />
 
     <!-- 聊天功能 -->
-    <EditText
-        android:id="@+id/et_chat_input"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:layout_marginTop="8dp"
-        android:hint="在这里输入文字、语音或图片"
-        android:gravity="top|start"
-        android:background="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/et_hobby"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.9" />
-
     <Button
         android:id="@+id/btn_submit_tree"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="提交"
-        app:layout_constraintTop_toBottomOf="@id/et_chat_input"
+        app:layout_constraintTop_toBottomOf="@id/et_hobby"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -24,9 +24,7 @@ public class SanctuaryFragment extends Fragment {
         LinearLayout ivBook = view.findViewById(R.id.diary_section);
         LinearLayout ivTree = view.findViewById(R.id.tree_section);
 
-        // 设置点击事件
         ivBook.setOnClickListener(v -> {
-            // 添加动画效果
             animateView(v, () -> {
                 NavController navController = Navigation.findNavController(view);
                 navController.navigate(R.id.action_sanctuary_to_diary);
@@ -34,7 +32,6 @@ public class SanctuaryFragment extends Fragment {
         });
 
         ivTree.setOnClickListener(v -> {
-            // 添加动画效果
             animateView(v, () -> {
                 NavController navController = Navigation.findNavController(view);
                 navController.navigate(R.id.action_sanctuary_to_tree);
