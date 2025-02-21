@@ -32,7 +32,7 @@
         <!-- 跳转到 TreeFragment -->
         <action
             android:id="@+id/action_sanctuary_to_tree"
-            app:destination="@id/navigation_tree" />
+            app:destination="@id/chatFragment" />
     </fragment>
 
     <!-- Diary Fragment -->
@@ -42,12 +42,26 @@
         android:label="@string/title_diary"
         tools:layout="@layout/fragment_diary" />
 
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.cloudchat_user.ui.mind_sanctuary.ChatFragment"
+        android:label="聊天"
+        tools:layout="@layout/fragment_chat" />
+
     <!-- Tree Fragment -->
     <fragment
         android:id="@+id/navigation_tree"
         android:name="com.example.cloudchat_user.ui.mind_sanctuary.TreeFragment"
         android:label="@string/title_tree"
-        tools:layout="@layout/fragment_tree" />
+        tools:layout="@layout/fragment_tree">
+        <action
+            android:id="@+id/action_treeFragment_to_chatFragment"
+            app:destination="@id/chatFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
 
     <!-- Account Fragment -->
     <fragment
