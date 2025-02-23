@@ -27,9 +27,12 @@ import java.io.File;
 import java.io.IOException;
 
 import static android.app.Activity.RESULT_OK;
-
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 public class LectureFragment extends Fragment {
-
+    private ActivityResultLauncher<Intent> takePictureLauncher;
+    private ActivityResultLauncher<Intent> pickImageLauncher;
+    private ActivityResultLauncher<Intent> pickFileLauncher;
     private FragmentLectureBinding binding;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
@@ -47,12 +50,9 @@ public class LectureFragment extends Fragment {
 
         uploadButton.setOnClickListener(v -> {
             SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
-            if (getParentFragmentManager() != null) {
-                dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
-            } else {
-                // 处理错误情况
-            }
+            dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
         });
+
         // 设置已接单/待接单区域的文本颜色
         TextView textView = binding.textView;
         SpannableString spannableString = new SpannableString("已接单/待接单");
@@ -189,10 +189,12 @@ public class LectureFragment extends Fragment {
 
     public void setSelectedGradeLevel(String gradeLevel) {
         this.selectedGradeLevel = gradeLevel;
+        proceedWithUpload();
     }
 
     public void setSelectedSubject(String subject) {
         this.selectedSubject = subject;
+        proceedWithUpload();
     }
 
     @Override

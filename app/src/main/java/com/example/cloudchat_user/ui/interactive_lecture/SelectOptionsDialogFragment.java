@@ -47,7 +47,7 @@ public class SelectOptionsDialogFragment extends DialogFragment {
 
     private void showGradeOptions() {
         final String[] grades = {"高中", "初中", "小学"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext()); // 使用 requireContext()
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("选择年级")
                 .setItems(grades, (dialog, which) -> {
                     switch (which) {
@@ -72,12 +72,9 @@ public class SelectOptionsDialogFragment extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("选择具体年级")
                 .setItems(options, (dialog, which) -> {
+                    // 处理具体年级选择的逻辑
                     String selectedGrade = options[which];
-                    LectureFragment fragment = (LectureFragment) getParentFragment();
-                    if (fragment != null) {
-                        fragment.setSelectedGradeLevel(selectedGrade);
-                    }
-                    // 不调用 proceedWithUpload，等待选择科目后再调用
+                    // 在这里处理选择的具体年级
                 });
         builder.show();
     }
@@ -102,8 +99,10 @@ public class SelectOptionsDialogFragment extends DialogFragment {
         builder.setTitle("选择科目")
                 .setItems(subjects, (dialog, which) -> {
                     selectedSubject = subjects[which];
+                    // 将选择的科目传递回 LectureFragment
                     LectureFragment fragment = (LectureFragment) getParentFragment();
                     if (fragment != null) {
+                        fragment.setSelectedGradeLevel(selectedGradeLevel);
                         fragment.setSelectedSubject(selectedSubject);
                         fragment.proceedWithUpload(); // 在选择科目后调用
                     }
@@ -111,5 +110,4 @@ public class SelectOptionsDialogFragment extends DialogFragment {
                 });
         builder.show();
     }
-
 }
