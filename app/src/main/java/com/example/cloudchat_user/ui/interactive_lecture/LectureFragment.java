@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,8 +29,9 @@ import java.io.IOException;
 
 import static android.app.Activity.RESULT_OK;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-public class LectureFragment extends Fragment {
+
+public class LectureFragment extends Fragment
+        implements SelectOptionsDialogFragment.OnOptionsSelectedListener{
     private ActivityResultLauncher<Intent> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private ActivityResultLauncher<Intent> pickFileLauncher;
@@ -38,9 +40,11 @@ public class LectureFragment extends Fragment {
     private static final int REQUEST_IMAGE_PICK = 2;
     private static final int REQUEST_FILE_PICK = 3;
     private Uri photoURI;
+    private String selectedGradeCategory;
     private String selectedGradeLevel;
     private String selectedSubject;
 
+    private static final int PERMISSION_REQUEST_CODE = 100;
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentLectureBinding.inflate(inflater, container, false);
@@ -67,20 +71,25 @@ public class LectureFragment extends Fragment {
         return root;
     }
 
-    public void proceedWithUpload() {
-        if (selectedGradeLevel != null && selectedSubject != null) {
-            showUploadOptions();
-        } else {
-            new AlertDialog.Builder(getContext())
-                    .setMessage("请先选择年级和科目")
-                    .setPositiveButton("确定", null)
-                    .show();
+    private void proceedWithUpload() {
+        Log.d("LectureFragment", "进入上传流程");
+        if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
+            Log.e("LectureFragment", "数据不完整: 年级大类=" + selectedGradeCategory + ", 具体年级=" + selectedGradeLevel + ", 科目=" + selectedSubject);
+            showErrorDialog("请先完整选择年级和科目");
+            return;
         }
+        showUploadOptions();
     }
-
+    private void showErrorDialog(String message) {
+        new AlertDialog.Builder(requireContext())
+                .setMessage(message)
+                .setPositiveButton("确定", null)
+                .show();
+    }
     private void showUploadOptions() {
+        Log.d("LectureFragment", "显示上传方式弹窗");
         final CharSequence[] options = {"拍照", "从图库选择", "上传附件"};
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("选择上传方式")
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
@@ -100,6 +109,7 @@ public class LectureFragment extends Fragment {
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
             File photoFile = null;
             try {
@@ -116,6 +126,7 @@ public class LectureFragment extends Fragment {
             }
         }
     }
+
 
     private void dispatchPickImageIntent() {
         Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK,
@@ -136,21 +147,55 @@ public class LectureFragment extends Fragment {
             switch (requestCode) {
                 case REQUEST_IMAGE_CAPTURE:
                     // Handle the captured image
+                    handleImageCapture();
                     break;
                 case REQUEST_IMAGE_PICK:
                     if (data != null) {
                         Uri selectedImage = data.getData();
-                        // Handle the selected image
+                        handleImagePick(selectedImage);
                     }
                     break;
                 case REQUEST_FILE_PICK:
                     if (data != null) {
                         Uri selectedFile = data.getData();
-                        // Handle the selected file
+                        handleFilePick(selectedFile);
                     }
                     break;
             }
         }
+    }
+
+    private void handleImageCapture() {
+        // 处理拍照后的逻辑
+        if (photoURI != null) {
+            // 这里可以上传照片并保存年级和学科信息
+            uploadFile(photoURI, "image");
+        }
+    }
+
+    private void handleImagePick(Uri selectedImage) {
+        // 处理从图库选择图片后的逻辑
+        if (selectedImage != null) {
+            // 这里可以上传图片并保存年级和学科信息
+            uploadFile(selectedImage, "image");
+        }
+    }
+
+    private void handleFilePick(Uri selectedFile) {
+        // 处理选择文件后的逻辑
+        if (selectedFile != null) {
+            // 这里可以上传文件并保存年级和学科信息
+            uploadFile(selectedFile, "file");
+        }
+    }
+
+    private void uploadFile(Uri fileUri, String fileType) {
+        // 这里实现上传文件的逻辑
+        // 你可以使用 selectedGradeLevel 和 selectedSubject 来保存年级和学科信息
+        // 例如：
+        // String grade = selectedGradeLevel;
+        // String subject = selectedSubject;
+        // 然后调用你的上传API
     }
 
     private File createImageFile() throws IOException {
@@ -187,14 +232,22 @@ public class LectureFragment extends Fragment {
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0);
     }
 
-    public void setSelectedGradeLevel(String gradeLevel) {
+    @Override
+    public void onGradeAndSubjectSelected(String gradeCategory, String gradeLevel, String subject) {
+        Log.d("LectureFragment", "收到回调: 年级大类=" + gradeCategory + ", 具体年级=" + gradeLevel + ", 科目=" + subject);
+        this.selectedGradeCategory = gradeCategory;
         this.selectedGradeLevel = gradeLevel;
-        proceedWithUpload();
+        this.selectedSubject = subject;
+
+        if (isAdded() && !isDetached()) {
+            proceedWithUpload();
+        }
     }
 
-    public void setSelectedSubject(String subject) {
-        this.selectedSubject = subject;
-        proceedWithUpload();
+    private void showSelectOptionsDialog() {
+        SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
+        dialog.setOnOptionsSelectedListener(this);
+        dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
     }
 
     @Override
