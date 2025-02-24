@@ -18,6 +18,7 @@ public class SelectOptionsDialogFragment extends DialogFragment {
     private String selectedGradeCategory; // 保存大类：高中/初中/小学
     private String selectedGradeLevel;     // 保存具体年级：高一/初二等
     private String selectedSubject;
+    private Button selectUploadMethodButton;
     public interface OnOptionsSelectedListener {
         void onGradeAndSubjectSelected(String gradeCategory, String gradeLevel, String subject);
     }
@@ -35,7 +36,8 @@ public class SelectOptionsDialogFragment extends DialogFragment {
 
         Button selectGradeButton = view.findViewById(R.id.selectGradeButton);
         Button selectSubjectButton = view.findViewById(R.id.selectSubjectButton);
-        Button closeButton = view.findViewById(R.id.closeButton);
+        selectUploadMethodButton = view.findViewById(R.id.selectUploadMethodButton);
+
 
         selectGradeButton.setOnClickListener(v -> showGradeOptions());
 
@@ -50,7 +52,7 @@ public class SelectOptionsDialogFragment extends DialogFragment {
             }
         });
 
-        closeButton.setOnClickListener(v -> dismiss()); // 关闭对话框
+        selectUploadMethodButton.setOnClickListener(v -> checkAndShowUploadOptions());
 
         return view;
     }
@@ -118,8 +120,47 @@ public class SelectOptionsDialogFragment extends DialogFragment {
                                 selectedSubject
                         );
                     }
-                    dismiss();
+                    //dismiss();
                 });
         builder.show();
     }
+    private void checkAndShowUploadOptions() {
+        if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
+            new AlertDialog.Builder(getContext())
+                    .setMessage("请先选择年级和科目")
+                    .setPositiveButton("确定", null)
+                    .show();
+        } else {
+            showUploadOptions();
+        }
+    }
+    private void showUploadOptions() {
+        final CharSequence[] options = {"拍照", "从图库选择", "选取文件"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择上传方式")
+                .setItems(options, (dialog, which) -> {
+                    if (uploadMethodListener != null) {
+                        // 传递所有必要参数
+                        uploadMethodListener.onUploadMethodSelected(
+                                which,
+                                selectedGradeCategory,
+                                selectedGradeLevel,
+                                selectedSubject
+                        );
+                    }
+                });
+        builder.show();
+    }
+
+    public interface OnUploadMethodSelectedListener {
+        void onUploadMethodSelected(int method, String grade, String level, String subject);
+    }
+
+    private OnUploadMethodSelectedListener uploadMethodListener;
+
+    public void setOnUploadMethodSelectedListener(OnUploadMethodSelectedListener listener) {
+        this.uploadMethodListener = listener;
+    }
+
+
 }

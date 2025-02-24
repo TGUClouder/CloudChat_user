@@ -1,10 +1,16 @@
 package com.example.cloudchat_user.ui.interactive_lecture;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
@@ -13,12 +19,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.example.cloudchat_user.R;
@@ -26,16 +37,19 @@ import com.example.cloudchat_user.databinding.FragmentLectureBinding;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static android.app.Activity.RESULT_OK;
 import androidx.activity.result.ActivityResultLauncher;
 
 public class LectureFragment extends Fragment
-        implements SelectOptionsDialogFragment.OnOptionsSelectedListener{
+        implements SelectOptionsDialogFragment.OnOptionsSelectedListener ,
+                   SelectOptionsDialogFragment.OnUploadMethodSelectedListener {
     private ActivityResultLauncher<Intent> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private ActivityResultLauncher<Intent> pickFileLauncher;
-    private FragmentLectureBinding binding;
+    private ActivityResultLauncher<String> requestPermissionLauncher;    private FragmentLectureBinding binding;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
     private static final int REQUEST_FILE_PICK = 3;
@@ -43,8 +57,12 @@ public class LectureFragment extends Fragment
     private String selectedGradeCategory;
     private String selectedGradeLevel;
     private String selectedSubject;
-
+    // 在 LectureFragment 类中添加
+    private int currentMethod = -1;
+    private ActivityResultLauncher<String[]> permissionLauncher;
     private static final int PERMISSION_REQUEST_CODE = 100;
+
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentLectureBinding.inflate(inflater, container, false);
@@ -56,6 +74,8 @@ public class LectureFragment extends Fragment
             SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
             dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
         });
+
+        View view = inflater.inflate(R.layout.fragment_lecture, container, false);
 
         // 设置已接单/待接单区域的文本颜色
         TextView textView = binding.textView;
@@ -71,6 +91,7 @@ public class LectureFragment extends Fragment
         return root;
     }
 
+
     private void proceedWithUpload() {
         Log.d("LectureFragment", "进入上传流程");
         if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
@@ -80,12 +101,14 @@ public class LectureFragment extends Fragment
         }
         showUploadOptions();
     }
+
     private void showErrorDialog(String message) {
         new AlertDialog.Builder(requireContext())
                 .setMessage(message)
                 .setPositiveButton("确定", null)
                 .show();
     }
+
     private void showUploadOptions() {
         Log.d("LectureFragment", "显示上传方式弹窗");
         final CharSequence[] options = {"拍照", "从图库选择", "上传附件"};
@@ -107,9 +130,72 @@ public class LectureFragment extends Fragment
         builder.show();
     }
 
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        requestPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                isGranted -> {
+                    if (isGranted) {
+                        dispatchTakePictureIntent();
+                    } else {
+                        // 处理权限被拒绝的情况
+                        showErrorDialog("需要相机权限才能拍照");
+                    }
+                }
+        );
+        permissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                result -> {
+                    boolean allGranted = true;
+                    for (Boolean permission : result.values()) {
+                        if (!permission) {
+                            allGranted = false;
+                            break;
+                        }
+                    }
+                    if (allGranted) {
+                        // 所有权限都已授予，继续上传流程
+                        proceedWithUpload();
+                    } else {
+                        // 处理权限被拒绝的情况
+                        showErrorDialog("需要权限才能上传文件");
+                    }});
+        // 初始化拍照Launcher
+        takePictureLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Log.d("LectureFragment", "Picture taken successfully");
+                        handleImageCapture();
+                    } else {
+                        Log.d("LectureFragment", "Failed to take picture or result not OK");
+                    }
+                }
+        );
 
+        // 初始化图片选择Launcher
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        handleImagePick(result.getData().getData());
+                    }
+                });
+
+        // 初始化文件选择Launcher
+        pickFileLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        handleFilePick(result.getData().getData());
+                    }
+                });
+    }
+
+    public void dispatchTakePictureIntent() {
+        Log.d("LectureFragment", "Dispatching take picture intent");
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
             File photoFile = null;
             try {
@@ -118,26 +204,43 @@ public class LectureFragment extends Fragment
                 // Handle error
             }
             if (photoFile != null) {
-                photoURI = FileProvider.getUriForFile(getContext(),
+                Uri photoURI = FileProvider.getUriForFile(getContext(),
                         "com.example.cloudchat_user.fileprovider",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                takePictureLauncher.launch(takePictureIntent);
             }
-        }
+        }else {
+            Log.e("LectureFragment", "No activity found to handle the intent");}
     }
 
 
-    private void dispatchPickImageIntent() {
-        Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK,
+
+    public void dispatchPickImageIntent() {
+        Intent intent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(pickPhotoIntent, REQUEST_IMAGE_PICK);
+        pickImageLauncher.launch(intent);
     }
 
-    private void dispatchPickFileIntent() {
-        Intent pickFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        pickFileIntent.setType("*/*");
-        startActivityForResult(pickFileIntent, REQUEST_FILE_PICK);
+    public void dispatchPickFileIntent() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                "image/*",
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        });
+        pickFileLauncher.launch(intent);
+    }
+    private void checkCameraPermissionAndProceed() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA);
+        } else {
+            Log.d("LectureFragment", "Camera permission granted, proceeding to take picture.");
+            dispatchTakePictureIntent();
+        }
     }
 
     @Override
@@ -171,6 +274,10 @@ public class LectureFragment extends Fragment
             // 这里可以上传照片并保存年级和学科信息
             uploadFile(photoURI, "image");
         }
+        if (photoURI != null) {
+            // 将照片显示在界面上
+            displayCapturedImage(photoURI);
+        }
     }
 
     private void handleImagePick(Uri selectedImage) {
@@ -190,12 +297,80 @@ public class LectureFragment extends Fragment
     }
 
     private void uploadFile(Uri fileUri, String fileType) {
-        // 这里实现上传文件的逻辑
-        // 你可以使用 selectedGradeLevel 和 selectedSubject 来保存年级和学科信息
-        // 例如：
-        // String grade = selectedGradeLevel;
-        // String subject = selectedSubject;
-        // 然后调用你的上传API
+        // 确保信息存在
+        if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
+            showErrorDialog("信息不完整，请重新选择");
+            return;
+        }
+
+        // 获取文件信息
+        String fileName = getFileName(fileUri);
+        String mimeType = requireContext().getContentResolver().getType(fileUri);
+
+        // 构建上传对象
+        UploadRequest request = new UploadRequest(
+                selectedGradeCategory,
+                selectedGradeLevel,
+                selectedSubject,
+                fileUri.toString(),
+                fileName,
+                mimeType
+        );
+
+        // TODO: 实现实际上传逻辑
+        Log.d("Upload", request.toString());
+    }
+
+    private String getFileName(Uri uri) {
+        String result = null;
+        if (uri.getScheme().equals("content")) {
+            try (Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.getPath();
+            int cut = result.lastIndexOf('/');
+            if (cut != -1) {
+                result = result.substring(cut + 1);
+            }
+        }
+        return result;
+    }
+
+    // 上传请求数据类
+    private static class UploadRequest {
+        final String gradeCategory;
+        final String gradeLevel;
+        final String subject;
+        final String fileUri;
+        final String fileName;
+        final String mimeType;
+
+        UploadRequest(String gradeCategory, String gradeLevel, String subject,
+                      String fileUri, String fileName, String mimeType) {
+            // 初始化所有字段...
+            // 使用 this 明确赋值给字段
+            this.gradeCategory = gradeCategory;
+            this.gradeLevel = gradeLevel;
+            this.subject = subject;
+            this.fileUri = fileUri;
+            this.fileName = fileName;
+            this.mimeType = mimeType;
+        }
+
+        @Override
+        public String toString() {
+            return "UploadRequest{" +
+                    "gradeCategory='" + gradeCategory + '\'' +
+                    ", gradeLevel='" + gradeLevel + '\'' +
+                    ", subject='" + subject + '\'' +
+                    ", fileName='" + fileName + '\'' +
+                    ", mimeType='" + mimeType + '\'' +
+                    '}';
+        }
     }
 
     private File createImageFile() throws IOException {
@@ -238,15 +413,42 @@ public class LectureFragment extends Fragment
         this.selectedGradeCategory = gradeCategory;
         this.selectedGradeLevel = gradeLevel;
         this.selectedSubject = subject;
-
-        if (isAdded() && !isDetached()) {
-            proceedWithUpload();
+        // 关闭年级科目选择对话框
+        Fragment prev = getParentFragmentManager().findFragmentByTag("SelectOptionsDialog");
+        if (prev != null) {
+            ((DialogFragment) prev).dismiss();
         }
+
+        // 检查权限后执行上传
+        checkPermissionsAndProceed(-1);
     }
 
+    private void checkPermissionsAndProceed(int method) {
+        String[] requiredPermissions = getRequiredPermissions(method);
+        if (checkSelfPermissions(requiredPermissions)) {
+            handleMethodSelection(method);
+        } else {
+            requestPermissions(requiredPermissions, PERMISSION_REQUEST_CODE);
+        }
+    }
+    // 添加成员变量
+
+    private void handleMethodSelection(int method) {
+        switch (method) {
+            case 0: // 拍照
+                dispatchTakePictureIntent();
+                break;
+            case 1: // 从图库选择
+                dispatchPickImageIntent();
+                break;
+            case 2: // 选取文件
+                dispatchPickFileIntent();
+                break;
+        }
+    }
     private void showSelectOptionsDialog() {
         SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
-        dialog.setOnOptionsSelectedListener(this);
+        dialog.setOnUploadMethodSelectedListener(this); // 关键设置
         dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
     }
 
@@ -255,4 +457,79 @@ public class LectureFragment extends Fragment
         super.onDestroyView();
         binding = null;
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // 使用保存的method值
+                handleMethodSelection(currentMethod);
+            } else {
+                showErrorDialog("需要权限才能上传文件");
+            }
+        }
+
+    }
+    @Override
+    public void onUploadMethodSelected(int method, String grade, String level, String subject) {
+        // 保存选择信息
+        this.selectedGradeCategory = grade;
+        this.selectedGradeLevel = level;
+        this.selectedSubject = subject;
+        this.currentMethod = method;
+        // 检查权限
+        checkPermissionsAndProceed(method);
+    }
+
+
+
+
+    private void displayCapturedImage(Uri imageUri) {
+        // 在界面上显示图片
+        ImageView imageView = getView().findViewById(R.id.capturedImageView);
+        imageView.setImageURI(imageUri);
+        imageView.setVisibility(View.VISIBLE);
+        imageView.setOnClickListener(v -> viewCapturedImage(imageUri));
+    }
+
+    private void viewCapturedImage(Uri imageUri) {
+        // 处理点击图片的逻辑，例如放大查看
+        Intent intent = new Intent(getContext(), FullScreenImageActivity.class);
+        intent.setData(imageUri);
+        startActivity(intent);
+    }
+
+    public class FullScreenImageActivity extends AppCompatActivity {
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_full_screen_image);
+
+            ImageView imageView = findViewById(R.id.fullScreenImageView);
+            Uri imageUri = getIntent().getData();
+            imageView.setImageURI(imageUri);
+        }
+    }
+
+    private boolean checkSelfPermissions(String[] permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(requireContext(), permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String[] getRequiredPermissions(int method) {
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+        if (method == 0) { // 拍照需要相机权限
+            permissions.add(Manifest.permission.CAMERA);
+        }
+
+        return permissions.toArray(new String[0]);
+    }
+
 }
