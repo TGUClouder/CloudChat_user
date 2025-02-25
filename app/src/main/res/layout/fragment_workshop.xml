@@ -8,6 +8,7 @@
     <!--context 绑定ui逻辑 -->
 
 
+
     <Button
         android:id="@+id/vote_button"
         android:layout_width="150dp"
@@ -42,6 +43,18 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:src="@drawable/shadows"
         />
+
+<!--    &lt;!&ndash; 环形 ProgressBar &ndash;&gt;-->
+<!--    <ProgressBar-->
+<!--        android:id="@+id/progressBar"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        android:visibility="invisible"-->
+<!--        android:indeterminate="true" /> &lt;!&ndash; 无进度条，只有旋转动画 &ndash;&gt;-->
 
     <!-- 测试用组件 -->
 <!--    <TextView-->
