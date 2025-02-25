@@ -45,7 +45,7 @@ import androidx.activity.result.ActivityResultLauncher;
 
 public class LectureFragment extends Fragment
         implements SelectOptionsDialogFragment.OnOptionsSelectedListener ,
-                   SelectOptionsDialogFragment.OnUploadMethodSelectedListener {
+        SelectOptionsDialogFragment.OnUploadMethodSelectedListener {
     private ActivityResultLauncher<Intent> takePictureLauncher;
     private ActivityResultLauncher<Intent> pickImageLauncher;
     private ActivityResultLauncher<Intent> pickFileLauncher;
@@ -117,12 +117,15 @@ public class LectureFragment extends Fragment
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0:
+                            Log.d("Upload", "拍照选项被点击");
                             dispatchTakePictureIntent();
                             break;
                         case 1:
+                            Log.d("Upload", "从图库选择选项被点击");
                             dispatchPickImageIntent();
                             break;
                         case 2:
+                            Log.d("Upload", "选取文件选项被点击");
                             dispatchPickFileIntent();
                             break;
                     }
@@ -323,10 +326,19 @@ public class LectureFragment extends Fragment
 
     private String getFileName(Uri uri) {
         String result = null;
+        Cursor cursor = null; // 在try块之外声明cursor变量
         if (uri.getScheme().equals("content")) {
-            try (Cursor cursor = requireContext().getContentResolver().query(uri, null, null, null, null)) {
+            try {
+                cursor = requireContext().getContentResolver().query(uri, null, null, null, null);
                 if (cursor != null && cursor.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                    int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                    if (nameIndex >= 0) {
+                        result = cursor.getString(nameIndex);
+                    }
+                }
+            } finally {
+                if (cursor != null) {
+                    cursor.close(); // 确保在finally块中关闭cursor
                 }
             }
         }
