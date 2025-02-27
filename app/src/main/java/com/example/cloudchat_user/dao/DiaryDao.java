@@ -10,6 +10,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 
 
 import okhttp3.MediaType;
@@ -25,8 +28,8 @@ public final class DiaryDao {
     static String tableUrl_v = "diary";
 
     // 根据用户名获取日记内容
-    public static String get_diary(String name) throws IOException, JSONException {
-        String appendURL = "?name="+name;
+    public static String get_my_diary(String name) throws IOException, JSONException {
+        String appendURL = "?option=mine&name="+name;
 
         Request request = new Request.Builder()
                 .url(baseURL+tableUrl_v+appendURL)
@@ -52,9 +55,57 @@ public final class DiaryDao {
         return "ConnectionFailed";
     }
 
+    // 获取所有日记
+    public static ArrayList<HashMap<String, String>>  get_all_diary() throws IOException, JSONException {
+        String appendURL = "?option=all&name=null";
+
+        ArrayList<HashMap<String, String>> arrayList = new ArrayList<>();
+        Request request = new Request.Builder()
+                .url(baseURL+tableUrl_v+appendURL)
+                .build();
+        try(Response response = okHttpClient.newCall(request).execute()){
+            if (response.isSuccessful() && response.body() != null) {
+                String string = response.body().string();
+                Gson gson = new Gson();
+                if(string.contains("error")){
+                    ErrorResponse errorResponse = gson.fromJson(string, ErrorResponse.class);
+                    HashMap<String, String> hashMap = new HashMap<>();
+                    hashMap.put("error", errorResponse.getError());
+                    arrayList.add(hashMap);
+                }else{
+                    JSONObject jsonObject = new JSONObject(string);
+                    JSONObject jsonMessage = jsonObject.getJSONObject("message");
+                    for (Iterator<String> it = jsonMessage.keys(); it.hasNext(); ) {
+                        HashMap<String, String> hashMap = new HashMap<>();
+                        String id = it.next();
+                        JSONObject userDetails = jsonMessage.getJSONObject(id);
+                        hashMap.put("diary", userDetails.getString("diary"));
+                        hashMap.put("first_name", userDetails.getString("first_name"));
+                        hashMap.put("last_name", userDetails.getString("last_name"));
+                        hashMap.put("hobby", userDetails.getString("hobby"));
+                        hashMap.put("gender", userDetails.getString("gender"));
+                        hashMap.put("degree", userDetails.getString("degree"));
+                        hashMap.put("grade", userDetails.getString("grade"));
+                        hashMap.put("birthday", userDetails.getString("birthday"));
+                        arrayList.add(hashMap);
+                    }
+
+                }
+                return arrayList;
+
+            } else {
+                System.out.println("Request failed: " + response.code());
+            }
+        }
+        HashMap<String, String> hashMap = new HashMap<>();
+        hashMap.put("error", "ConnectionFailed");
+        arrayList.add(hashMap);
+        return arrayList;
+    }
+
     // 新增日记返回id
     public static String set_diary(String username, String content) throws IOException {
-        String appendURL = "?accountName=" + username + "&content=" + content;
+        String appendURL = "accountName=" + username + "&content=" + content;
         MediaType mediaType = MediaType.get("application/x-www-form-urlencoded");
         RequestBody requestBody = RequestBody.create(appendURL.getBytes(StandardCharsets.UTF_8), mediaType);
 
