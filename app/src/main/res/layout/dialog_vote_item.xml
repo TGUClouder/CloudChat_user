@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="130dp"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    app:flexWrap="nowrap"
+    app:flexDirection="row"
+    app:justifyContent="center">
+
+    <TextView
+        android:id="@+id/topic"
+        android:layout_width="120dp"
+        android:layout_height="130dp"
+        android:text="话题"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/owner"
+        android:layout_width="70dp"
+        android:layout_height="130dp"
+        android:text="创建者"
+        android:textSize="20sp" />
+
+
+
+    <TextView
+        android:id="@+id/detail"
+        android:layout_width="40dp"
+        android:layout_height="130dp"
+        android:paddingLeft="15dp"
+        android:text="详情"
+        android:textColor="@color/purple_500"
+        android:textSize="20sp" />
+
+    <RadioButton
+        android:id="@+id/vote_for"
+        android:layout_width="60dp"
+        android:paddingLeft="20dp"
+        android:layout_height="130dp"
+        android:checked="false"/>
+
+
+</com.google.android.flexbox.FlexboxLayout>

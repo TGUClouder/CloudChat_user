@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.flexbox.FlexboxLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:flexDirection="column"
+    app:flexWrap="wrap">
+
+    <TextView
+        android:textSize="25sp"
+        android:text="话题："
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/detail_topic"
+        android:textSize="25sp"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="哇塞！"
+        />
+    <TextView
+        android:textSize="25sp"
+        android:text="创建者："
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:textStyle="bold"        />
+    <TextView
+        android:id="@+id/detail_creator"
+        android:textSize="25sp"
+        android:text="rmtime"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        />
+
+    <TextView
+        android:textSize="25sp"
+        android:text="创建时间："
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        />
+
+    <TextView
+        android:id="@+id/detail_start_time"
+        android:textSize="25sp"
+        android:text="2025-01-05 12:12:00"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        />
+    <TextView
+        android:textSize="25sp"
+        android:text="截止时间："
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        />
+    <TextView
+        android:id="@+id/detail_end_time"
+        android:textSize="25sp"
+        android:text="2025-01-09 23:59:59"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        />
+    <TextView
+        android:textSize="25sp"
+        android:text="描述："
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        />
+
+
+    <TextView
+        android:id="@+id/detail_content"
+        android:text="知道它怎么做到的吗？"
+        android:textSize="25sp"
+        android:layout_rowWeight="20"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        />
+
+
+</com.google.android.flexbox.FlexboxLayout>
