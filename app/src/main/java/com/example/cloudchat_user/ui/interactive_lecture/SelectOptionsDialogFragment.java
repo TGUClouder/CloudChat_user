@@ -1,3 +1,4 @@
+
 package com.example.cloudchat_user.ui.interactive_lecture;
 
 import android.os.Bundle;
@@ -37,4 +38,5 @@ public class SelectOptionsDialogFragment extends DialogFragment {
 
         return view;
     }
+
 }

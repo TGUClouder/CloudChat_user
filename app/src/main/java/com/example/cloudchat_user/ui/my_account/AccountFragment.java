@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -19,11 +20,13 @@ import android.widget.*;
 import androidx.fragment.app.Fragment;
 import com.example.cloudchat_user.R;
 import com.example.cloudchat_user.dao.UserDao;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
+
 
 public class AccountFragment extends Fragment {
 
@@ -36,6 +39,7 @@ public class AccountFragment extends Fragment {
     private Button manageInfoButton;
     private Button changePasswordButton;
     private Button logoutButton;  // 添加注销按钮
+
     private Button signOutButton; // 退出登录按钮
     private String username = "user123"; // 默认用户名
     private SharedPreferences sharedPreferences;
@@ -48,6 +52,7 @@ public class AccountFragment extends Fragment {
                              Bundle savedInstanceState) {
         // 加载 fragment_account.xml 布局
         View view = inflater.inflate(R.layout.fragment_account, container, false);
+
 
         // 初始化 SharedPreferences
         sharedPreferences = requireActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -73,13 +78,20 @@ public class AccountFragment extends Fragment {
         // 注册按钮监听器
         registerButton.setOnClickListener(v -> showRegisterDialog());
 
+
         // 个人信息管理按钮
         manageInfoButton.setOnClickListener(v -> showManageInfoDialog());
         changePasswordButton.setOnClickListener(v -> showOldPasswordDialog());
         logoutButton.setOnClickListener(v -> logout());
+
         signOutButton.setOnClickListener(v -> handleSignOut());
+
         return view;
     }
+    private void showManageInfoDialog() {
+        // 创建个人信息管理弹窗
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manage_info, null);
+
 
     private void checkLoginState() {
         boolean isLoggedIn = sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false);
@@ -639,5 +651,6 @@ public class AccountFragment extends Fragment {
         userLayout.setVisibility(View.GONE);
         Toast.makeText(getContext(), "已退出登录", Toast.LENGTH_SHORT).show();
     }
+
 
 }
