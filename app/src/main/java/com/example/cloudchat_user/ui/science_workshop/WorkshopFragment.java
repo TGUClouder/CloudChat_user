@@ -1,5 +1,6 @@
 package com.example.cloudchat_user.ui.science_workshop;
 
+
 import static android.content.Context.MODE_PRIVATE;
 
 import android.animation.ValueAnimator;
@@ -27,6 +28,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.example.cloudchat_user.R;
 import com.example.cloudchat_user.adapter.VoteAdapter;
@@ -70,8 +72,10 @@ public class WorkshopFragment extends Fragment {
         binding = FragmentWorkshopBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+
         adapter = new VoteAdapter(voteMap, workshopViewModel);
         voteResultAdapter = new VoteResultAdapter(voteMap, workshopViewModel);
+
 
         final Button button_vote = binding.voteButton;
         final Button button_lecture = binding.lectureReplayButton;
@@ -88,7 +92,9 @@ public class WorkshopFragment extends Fragment {
         button_vote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if(!VOTABLE){ShowVoteResult();}else{ShowVoteDialog(v);}
+
             }
         });
 
@@ -112,6 +118,70 @@ public class WorkshopFragment extends Fragment {
 
         return root;
     }
+
+    private void ShowLive(View v) {
+        Toast.makeText(getContext(), "后续实现跳转直播", Toast.LENGTH_SHORT).show();
+    }
+
+    private void ShowWorkshopDialog(View v) {
+        final String[] items = {"科学科普", "生活科普", "健康科普", "其他"};
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setIcon(R.mipmap.app_icon)//设置标题的图片
+                .setTitle("课程回放（后续实现跳转activity）")//设置对话框的标题
+                .setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
+
+    }
+
+    private int vote_index;
+    private void ShowVoteDialog(View v){
+        final String[] items = {"选项一", "选项二", "选项三", "选项四"};
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setIcon(R.mipmap.app_icon)//设置标题的图片
+                .setTitle("投票（后续由数据库获取）")//设置对话框的标题
+                .setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        vote_index = which;
+                        Toast.makeText(getContext(), items[which]+" 后续弹出对话框显示具体内容", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getContext(), "你选择了"+items[vote_index], Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                    }
+                }).create();
+        dialog.show();
+
+    }
+
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

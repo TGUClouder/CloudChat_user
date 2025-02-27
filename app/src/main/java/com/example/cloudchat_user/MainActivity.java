@@ -22,14 +22,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // 显示系统ActionBar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().show();
+        }
+
         BottomNavigationView navView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        //
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_lecture, R.id.navigation_workshop, R.id.navigation_sanctuary, R.id.navigation_account)
                 .build();
@@ -59,4 +60,9 @@ public class MainActivity extends AppCompatActivity {
         return dayOfWeek == Calendar.FRIDAY && (hourOfDay > 0 || (hourOfDay == 0 && (minute > 0 || (minute == 0 && second > 0))));
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
+        return navController.navigateUp() || super.onSupportNavigateUp();
+    }
 }

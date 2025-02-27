@@ -13,6 +13,9 @@
         <item>四年级</item>
         <item>五年级</item>
         <item>六年级</item>
+        <item>七年级</item>
+        <item>八年级</item>
+        <item>九年级</item>
     </string-array>
 
     <string name="title_diary">心情日记</string>

@@ -8,7 +8,6 @@
     <!--context 绑定ui逻辑 -->
 
 
-
     <Button
         android:id="@+id/vote_button"
         android:layout_width="150dp"
@@ -56,18 +55,5 @@
 <!--        android:visibility="invisible"-->
 <!--        android:indeterminate="true" /> &lt;!&ndash; 无进度条，只有旋转动画 &ndash;&gt;-->
 
-    <!-- 测试用组件 -->
-<!--    <TextView-->
-<!--        android:id="@+id/text_workshop"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:layout_marginStart="8dp"-->
-<!--        android:layout_marginTop="8dp"-->
-<!--        android:textAlignment="center"-->
-<!--        android:textSize="20sp"-->
-<!--        app:layout_constraintBottom_toBottomOf="parent"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent" />-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

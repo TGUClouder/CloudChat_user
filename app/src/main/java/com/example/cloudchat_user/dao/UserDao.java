@@ -1,5 +1,6 @@
 package com.example.cloudchat_user.dao;
 
+
 import androidx.annotation.NonNull;
 
 import com.google.gson.Gson;
@@ -15,8 +16,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import com.example.cloudchat_user.json.*;
 
+import com.example.cloudchat_user.json.*;
 
 
 
@@ -59,7 +60,9 @@ public final class UserDao {
     // 获取用户信息
     public static ArrayList<String> get_userinfo(String username)throws IOException{
         ArrayList<String> arrayList = new ArrayList<>();
+
         String appendURL = "user_info?accountType=child&accountName="+username;
+
         Request request = new Request.Builder()
                 .url(baseURL+appendURL)
                 .build();
@@ -124,6 +127,7 @@ public final class UserDao {
         return "ConnectionFailed";
 
 
+
     }
 
 
@@ -148,11 +152,13 @@ public final class UserDao {
 
             } else {
                 System.out.println("Request failed: " + response.code());
+
             }
         }
         return "ConnectionFailed";
 
     }
+
 
     // 注册帐号
     public static String signup(ArrayList<String> arrayList) throws IOException {
@@ -181,6 +187,7 @@ public final class UserDao {
             }
         }
         return "ConnectionFailed";
+
 
     }
 
@@ -228,7 +235,6 @@ public final class UserDao {
         }
         return "ConnectionFailed";
     }
-
 
     private static String getAppendURL(ArrayList<String> arrayList) {
         String username = arrayList.get(0);
