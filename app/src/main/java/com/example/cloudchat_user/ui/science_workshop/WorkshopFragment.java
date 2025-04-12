@@ -3,9 +3,9 @@ package com.example.cloudchat_user.ui.science_workshop;
 
 import static android.content.Context.MODE_PRIVATE;
 
-import android.animation.ValueAnimator;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,10 +14,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,15 +31,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.cloudchat_user.R;
 import com.example.cloudchat_user.adapter.VoteAdapter;
 import com.example.cloudchat_user.adapter.VoteResultAdapter;
+import com.example.cloudchat_user.dao.ReplayDao;
 import com.example.cloudchat_user.dao.VotesDao;
+import com.example.cloudchat_user.data.FlvFileFetcher;
 import com.example.cloudchat_user.databinding.FragmentWorkshopBinding;
 import com.example.cloudchat_user.itemdecoration.VoteDecoration;
+import com.example.cloudchat_user.ui.PlayerActivity;
 
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class WorkshopFragment extends Fragment {
 
@@ -62,6 +64,7 @@ public class WorkshopFragment extends Fragment {
     private VoteResultAdapter voteResultAdapter;
 
     private Boolean renewed = false;
+    private String theme;
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -119,19 +122,63 @@ public class WorkshopFragment extends Fragment {
         return root;
     }
 
-    private void ShowLive(View v) {
-        Toast.makeText(getContext(), "后续实现跳转直播", Toast.LENGTH_SHORT).show();
+    private String BuildDownloadURL(String section){
+        String base_ip = "http://182.92.183.192";
+        String append_url = "/live/";
+        final String[] file_name = new String[]{""};
+
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                long mil_second;
+                try{
+                    mil_second = ReplayDao.get_mil_sec(section);
+                    if(mil_second==-1||mil_second==-2){
+                        throw new RuntimeException("Cannot get the timestamp");
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                FlvFileFetcher flvFileFetcher = new FlvFileFetcher();
+                flvFileFetcher.fetchFlvFileNames(base_ip + append_url, new FlvFileFetcher.FileNameCallback() {
+                    @Override
+                    public void onSuccess(List<String> fileNames) {
+                        int index = -1;
+                        long min = 999999999;
+                        long gap;
+                        for(String i : fileNames){
+                            long timestamp = Long.parseLong(i.replace("stream.","").replace(".flv",""));
+                            gap = Math.abs(timestamp-mil_second);
+                            if(gap<min){
+                                index++;
+                                min=gap;
+                            }
+                        }
+                        file_name[0] = fileNames.get(index);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        throw new RuntimeException("Cannot get filenames");
+                    }
+                });
+            }
+        }).start();
+        while(file_name[0].equals(""));
+        return file_name[0];
     }
+
 
     private void ShowWorkshopDialog(View v) {
         final String[] items = {"科学科普", "生活科普", "健康科普", "其他"};
         AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setIcon(R.mipmap.app_icon)//设置标题的图片
-                .setTitle("课程回放（后续实现跳转activity）")//设置对话框的标题
-                .setItems(items, new DialogInterface.OnClickListener() {
+                .setTitle("课程回放")//设置对话框的标题
+                .setSingleChoiceItems(items, 0, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-
+                        theme = items[which];
                     }
                 })
                 .setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -143,44 +190,17 @@ public class WorkshopFragment extends Fragment {
                 .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        String url = BuildDownloadURL(theme);
+                        Intent intent = new Intent(getActivity(), PlayerActivity.class);
+                        intent.putExtra("mode","replay");
+                        intent.putExtra("download_url", url); // 传递 URL 参数
+                        startActivity(intent);
                         dialog.dismiss();
                     }
                 }).create();
         dialog.show();
 
     }
-
-    private int vote_index;
-    private void ShowVoteDialog(View v){
-        final String[] items = {"选项一", "选项二", "选项三", "选项四"};
-
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setIcon(R.mipmap.app_icon)//设置标题的图片
-                .setTitle("投票（后续由数据库获取）")//设置对话框的标题
-                .setSingleChoiceItems(items, 1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        vote_index = which;
-                        Toast.makeText(getContext(), items[which]+" 后续弹出对话框显示具体内容", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getContext(), "你选择了"+items[vote_index], Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    }
-                }).create();
-        dialog.show();
-
-    }
-
 
 
     @Override
@@ -210,35 +230,13 @@ public class WorkshopFragment extends Fragment {
     private void ShowLive(View v) {
         editor.putBoolean("votable", true);
         editor.commit();
-        Toast.makeText(getContext(), "后续实现跳转直播,已解除投票限制,请重启应用！", Toast.LENGTH_SHORT).show();
-    }
-
-    private void ShowWorkshopDialog(View v) {
-        final String[] items = {"科学科普", "生活科普", "健康科普", "其他"};
-        AlertDialog dialog = new AlertDialog.Builder(getContext())
-                .setIcon(R.mipmap.app_icon)//设置标题的图片
-                .setTitle("课程回放（后续实现跳转activity）")//设置对话框的标题
-                .setItems(items, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                })
-                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).create();
-        dialog.show();
+        Toast.makeText(getContext(), "已解除投票限制,请重启应用！", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getActivity(), PlayerActivity.class);
+        intent.putExtra("mode","live");
+        startActivity(intent);
 
     }
+
 
     private void ShowVoteDialog(View v){
         if(voteMap.isEmpty()){
