@@ -1,5 +1,7 @@
 package com.example.cloudchat_user.dao;
 
+import android.util.Log;
+
 import com.example.cloudchat_user.json.ErrorResponse;
 import com.example.cloudchat_user.json.IdResponse;
 import com.example.cloudchat_user.json.StatusResponse;
@@ -45,6 +47,12 @@ public final class VotesDao {
                     arrayList.add(errorResponse.getError());
                     map.put("error", arrayList);
                 }else{
+                    if(string.contains(":}")){
+                        ArrayList<String> arrayList = new ArrayList<>();
+                        arrayList.add("null");
+                        map.put("0",arrayList);
+                        return map;}
+                    Log.d("Votes", string);
                     JSONObject jsonObject = new JSONObject(string);
                     JSONObject jsonMessage = jsonObject.getJSONObject("message");
                     for (Iterator<String> it = jsonMessage.keys(); it.hasNext(); ) {
