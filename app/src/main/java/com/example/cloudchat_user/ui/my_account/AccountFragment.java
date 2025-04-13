@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.*;
 import androidx.fragment.app.Fragment;
 import com.example.cloudchat_user.R;
+import com.example.cloudchat_user.dao.DiaryDao;
 import com.example.cloudchat_user.dao.UserDao;
 import android.os.Handler;
 import android.os.Looper;
@@ -555,6 +556,13 @@ public class AccountFragment extends Fragment {
                                 } else if (result.contains("error")) {
                                     Toast.makeText(getContext(), "用户名重复：" + result, Toast.LENGTH_SHORT).show();
                                 } else {
+                                    new Thread(() -> {
+                                        try {
+                                            DiaryDao.set_diary(username, null);
+                                        } catch (IOException e) {
+                                            Log.e("RegisterDebug", "设置日记失败", e);
+                                        }
+                                    }).start();
                                     Toast.makeText(getContext(), "注册成功\n账号: " + username, Toast.LENGTH_SHORT).show();
                                     dialog.dismiss();
                                 }

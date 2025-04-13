@@ -32,63 +32,77 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.MessageViewHol
                 .inflate(R.layout.item_chat_message, parent, false);
         return new MessageViewHolder(view);
     }
-
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         ChatMessage message = messages.get(position);
 
-        LinearLayout rootLayout = (LinearLayout) holder.itemView;
+        // 显示时间
+        holder.messageTime.setText(message.getTime());
+        holder.messageTime.setVisibility(View.VISIBLE);
 
-        if (message.getImageBitmap() != null) {  // 先检查 Bitmap
-            holder.messageImage.setVisibility(View.VISIBLE);
-            holder.messageText.setVisibility(View.GONE);
-            holder.messageImage.setImageBitmap(message.getImageBitmap());
-        } else if (message.getImageUrl() != null) {  // 如果没有 Bitmap，检查 Base64
-            holder.messageImage.setVisibility(View.VISIBLE);
-            holder.messageText.setVisibility(View.GONE);
-            try {
-                Log.d("ChatAdapter", "收到的图片数据：" + message.getImageUrl().substring(0, Math.min(50, message.getImageUrl().length())) + "...");
-
-                if (message.getImageUrl().startsWith("data:image")) {
-                    String base64Image = message.getImageUrl().split(",")[1];
-                    byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-                    Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-
-                    if (bitmap != null) {
-                        Log.d("ChatAdapter", "Bitmap 解析成功，大小: " + bitmap.getWidth() + "x" + bitmap.getHeight());
-                        holder.messageImage.setImageBitmap(bitmap);
-                    } else {
-                        Log.e("ChatAdapter", "Bitmap 解析失败");
-                    }
-                }
-            } catch (Exception e) {
-                Log.e("ChatAdapter", "图片加载错误", e);
-            }
-        } else {  // 文字消息
-            holder.messageImage.setVisibility(View.GONE);
-            holder.messageText.setVisibility(View.VISIBLE);
-            holder.messageText.setText(message.getContent());
-        }
-
-        // 处理消息的布局
         if (message.isSent()) {
-            rootLayout.setGravity(Gravity.END);
-            holder.messageText.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.chat_bubble_sent));
-            holder.avatarImage.setVisibility(View.VISIBLE);
-            holder.avatarImage.setImageResource(R.drawable.studentphoto);
+            holder.receiveLayout.setVisibility(View.GONE);
+            holder.sendLayout.setVisibility(View.VISIBLE);
 
-            rootLayout.removeView(holder.avatarImage);
-            rootLayout.addView(holder.avatarImage);
+            holder.senderAvatar.setImageResource(R.drawable.studentphoto);
+            holder.senderAvatar.setVisibility(View.VISIBLE);
+
+            if (message.getImageBitmap() != null) {
+                holder.senderMessageImage.setVisibility(View.VISIBLE);
+                holder.senderMessageText.setVisibility(View.GONE);
+                holder.senderMessageImage.setImageBitmap(message.getImageBitmap());
+            } else if (message.getImageUrl() != null) {
+                holder.senderMessageImage.setVisibility(View.VISIBLE);
+                holder.senderMessageText.setVisibility(View.GONE);
+                try {
+                    if (message.getImageUrl().startsWith("data:image")) {
+                        String base64Image = message.getImageUrl().split(",")[1];
+                        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        holder.senderMessageImage.setImageBitmap(bitmap);
+                    }
+                } catch (Exception e) {
+                    Log.e("ChatAdapter", "图片加载错误", e);
+                }
+            } else {
+                holder.senderMessageImage.setVisibility(View.GONE);
+                holder.senderMessageText.setVisibility(View.VISIBLE);
+                holder.senderMessageText.setText(message.getContent());
+            }
+
         } else {
-            rootLayout.setGravity(Gravity.START);
-            holder.messageText.setBackground(ContextCompat.getDrawable(holder.itemView.getContext(), R.drawable.chat_bubble_received));
-            holder.avatarImage.setVisibility(View.VISIBLE);
-            holder.avatarImage.setImageResource(R.drawable.colledgephoto);
+            holder.sendLayout.setVisibility(View.GONE);
+            holder.receiveLayout.setVisibility(View.VISIBLE);
 
-            rootLayout.removeView(holder.avatarImage);
-            rootLayout.addView(holder.avatarImage, 0);
+            holder.receiverAvatar.setImageResource(R.drawable.colledgephoto);
+            holder.receiverAvatar.setVisibility(View.VISIBLE);
+
+            if (message.getImageBitmap() != null) {
+                holder.receiverMessageImage.setVisibility(View.VISIBLE);
+                holder.receiverMessageText.setVisibility(View.GONE);
+                holder.receiverMessageImage.setImageBitmap(message.getImageBitmap());
+            } else if (message.getImageUrl() != null) {
+                holder.receiverMessageImage.setVisibility(View.VISIBLE);
+                holder.receiverMessageText.setVisibility(View.GONE);
+                try {
+                    if (message.getImageUrl().startsWith("data:image")) {
+                        String base64Image = message.getImageUrl().split(",")[1];
+                        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                        Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        holder.receiverMessageImage.setImageBitmap(bitmap);
+                    }
+                } catch (Exception e) {
+                    Log.e("ChatAdapter", "图片加载错误", e);
+                }
+            } else {
+                holder.receiverMessageImage.setVisibility(View.GONE);
+                holder.receiverMessageText.setVisibility(View.VISIBLE);
+                holder.receiverMessageText.setText(message.getContent());
+            }
         }
     }
+
+
 
 
     @Override
@@ -97,15 +111,29 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.MessageViewHol
     }
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
-        TextView messageText;
-        ImageView messageImage;
-        ImageView avatarImage;
+        TextView receiverMessageText, senderMessageText, messageTime;
+        ImageView receiverMessageImage, senderMessageImage;
+        ImageView receiverAvatar, senderAvatar;
+        LinearLayout receiveLayout, sendLayout;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
-            messageText = itemView.findViewById(R.id.messageText);
-            messageImage = itemView.findViewById(R.id.messageImage);
-            avatarImage = itemView.findViewById(R.id.avatarImage);
+            // 时间
+            messageTime = itemView.findViewById(R.id.messageTime);
+
+            // 接收消息相关
+            receiveLayout = itemView.findViewById(R.id.receiveLayout);
+            receiverMessageText = itemView.findViewById(R.id.receiverMessageText);
+            receiverMessageImage = itemView.findViewById(R.id.receiverMessageImage);
+            receiverAvatar = itemView.findViewById(R.id.receiverAvatar);
+
+            // 发送消息相关
+            sendLayout = itemView.findViewById(R.id.sendLayout);
+            senderMessageText = itemView.findViewById(R.id.senderMessageText);
+            senderMessageImage = itemView.findViewById(R.id.senderMessageImage);
+            senderAvatar = itemView.findViewById(R.id.senderAvatar);
         }
     }
+
+
 } 
