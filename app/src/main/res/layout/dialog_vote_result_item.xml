@@ -7,7 +7,7 @@
         android:id="@+id/result_topic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="话题：你很好"
+        android:text="话题：当前没有投票"
         android:textColor="@color/black"
         android:textSize="20sp"/>
     <TextView
