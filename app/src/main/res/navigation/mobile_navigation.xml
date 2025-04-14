@@ -10,7 +10,17 @@
         android:id="@+id/navigation_lecture"
         android:name="com.example.cloudchat_user.ui.interactive_lecture.LectureFragment"
         android:label="@string/title_lecture"
-        tools:layout="@layout/fragment_lecture" />
+        tools:layout="@layout/fragment_lecture">
+        <action
+            android:id="@+id/action_lecture_to_danmaku"
+            app:destination="@layout/fragment_danmaku" />
+    </fragment>
+    <fragment
+        android:id="@+id/navigation_danmaku"
+        android:name="com.example.cloudchat_user.ui.interactive_lecture.DanmakuFragment"
+        android:label="弹幕"
+        tools:layout="@layout/fragment_danmaku" />
+
 
     <!-- Workshop Fragment -->
     <fragment

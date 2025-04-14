@@ -21,9 +21,7 @@ import java.util.Iterator;
 public final class MaterialDao {
     static OkHttpClient okHttpClient = new OkHttpClient();
     static String baseURL = "http://47.94.207.38:9999/cloudchat_db_server-1.2/";
-
     static String tableUrl_m = "material";
-
     private MaterialDao(){}
 
     // 获取所有链接

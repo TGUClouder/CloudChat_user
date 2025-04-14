@@ -14,8 +14,7 @@
             android:id="@+id/profileImage"
             android:layout_width="100dp"
             android:layout_height="100dp"
-
-            android:src="@mipmap/app_icon"
+            android:src="@drawable/studentphoto"
             android:scaleType="centerCrop"
             android:layout_marginTop="16dp"
             app:layout_constraintTop_toTopOf="parent"
@@ -60,9 +59,7 @@
             android:layout_height="120dp"
             android:layout_marginTop="32dp"
             android:scaleType="centerCrop"
-
-            android:src="@mipmap/app_icon"
-
+            android:src="@drawable/studentphoto"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
@@ -87,7 +84,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-
         <!-- 退出登录按钮 -->
         <Button
             android:id="@+id/signOutButton"
@@ -107,9 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="注销账户"
-
             app:layout_constraintTop_toBottomOf="@id/signOutButton"
-
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
