@@ -1,7 +1,9 @@
 package com.example.cloudchat_user;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import com.example.cloudchat_user.network.PhotoWebSocketManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,6 +14,8 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.cloudchat_user.databinding.ActivityMainBinding;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
@@ -19,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        PhotoWebSocketManager.getInstance();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -35,6 +39,27 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+        // 在应用启动时检查每周五 00:00:00 之后的时间，并更新 SharedPreferences
+        if (isFridayMidnightPassed()) {
+            SharedPreferences sharedPreferences = getSharedPreferences("my_preferences", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("votable", true);
+            editor.apply();
+        }
+
+    }
+    private boolean isFridayMidnightPassed() {
+        long currentTimeMillis = System.currentTimeMillis();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(currentTimeMillis);
+
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        int second = calendar.get(Calendar.SECOND);
+
+        return dayOfWeek == Calendar.FRIDAY && (hourOfDay > 0 || (hourOfDay == 0 && (minute > 0 || (minute == 0 && second > 0))));
     }
 
     @Override
