@@ -1,12 +1,11 @@
 package com.example.cloudchat_user.ui.interactive_lecture;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,6 +15,20 @@ import com.example.cloudchat_user.R;
 
 public class SelectOptionsDialogFragment extends DialogFragment {
 
+    private String selectedGradeCategory; // 保存大类：高中/初中/小学
+    private String selectedGradeLevel;     // 保存具体年级：高一/初二等
+    private String selectedSubject;
+    private Button selectUploadMethodButton;
+    public interface OnOptionsSelectedListener {
+        void onGradeAndSubjectSelected(String gradeCategory, String gradeLevel, String subject);
+    }
+
+    private OnOptionsSelectedListener listener;
+
+
+    public void setOnOptionsSelectedListener(OnOptionsSelectedListener listener) {
+        this.listener = listener;
+    }
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -23,18 +36,141 @@ public class SelectOptionsDialogFragment extends DialogFragment {
 
         Button selectGradeButton = view.findViewById(R.id.selectGradeButton);
         Button selectSubjectButton = view.findViewById(R.id.selectSubjectButton);
-        Button closeButton = view.findViewById(R.id.closeButton);
+        selectUploadMethodButton = view.findViewById(R.id.selectUploadMethodButton);
 
-        selectGradeButton.setOnClickListener(v -> {
-            // 处理选择年级的逻辑
-        });
+
+        selectGradeButton.setOnClickListener(v -> showGradeOptions());
 
         selectSubjectButton.setOnClickListener(v -> {
-            // 处理选择科目的逻辑
+            if (selectedGradeLevel != null) {
+                showSubjectOptions();
+            } else {
+                new AlertDialog.Builder(getContext())
+                        .setMessage("请先选择年级")
+                        .setPositiveButton("确定", null)
+                        .show();
+            }
         });
 
-        closeButton.setOnClickListener(v -> dismiss()); // 关闭对话框
+        selectUploadMethodButton.setOnClickListener(v -> checkAndShowUploadOptions());
 
         return view;
     }
+
+    private void showGradeOptions() {
+        final String[] categories = {"高中", "初中", "小学"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择年级类型")
+                .setItems(categories, (dialog, which) -> {
+                    selectedGradeCategory = categories[which]; // 保存大类
+                    showSpecificGradeOptions(which);
+                });
+        builder.show();
+    }
+
+    private void showSpecificGradeOptions(int categoryIndex) {
+        String[] grades;
+        switch (categoryIndex) {
+            case 0: // 高中
+                grades = new String[]{"高一", "高二", "高三"};
+                break;
+            case 1: // 初中
+                grades = new String[]{"初一", "初二", "初三"};
+                break;
+            case 2: // 小学
+                grades = new String[]{"一年级", "二年级", "三年级", "四年级", "五年级", "六年级"};
+                break;
+            default:
+                grades = new String[]{};
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择具体年级")
+                .setItems(grades, (dialog, which) -> {
+                    selectedGradeLevel = grades[which]; // 保存具体年级
+                    showSubjectOptions(); // 自动触发科目选择
+                });
+        builder.show();
+    }
+    private void showSubjectOptions() {
+        String[] subjects;
+        switch (selectedGradeCategory) {
+            case "高中":
+            case "初中":
+                subjects = new String[]{"语文", "数学", "英语", "物理", "历史", "化学", "政治", "地理", "生物"};
+                break;
+            case "小学":
+                subjects = new String[]{"语文", "数学", "英语"};
+                break;
+            default:
+                subjects = new String[]{};
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择科目")
+                .setItems(subjects, (dialog, which) -> {
+                    selectedSubject = subjects[which];
+
+                    // 保存到本地
+                    saveSelectionToPreferences(selectedGradeCategory, selectedGradeLevel, selectedSubject);
+
+                    if (listener != null) {
+                        listener.onGradeAndSubjectSelected(
+                                selectedGradeCategory,
+                                selectedGradeLevel,
+                                selectedSubject
+                        );
+                    }
+                });
+        builder.show();
+    }
+    private void saveSelectionToPreferences(String gradeCategory, String gradeLevel, String subject) {
+        if (getContext() == null) return; // 避免空指针
+
+        getContext().getSharedPreferences("UserSelection", getContext().MODE_PRIVATE)
+                .edit()
+                .putString("gradeCategory", gradeCategory)
+                .putString("gradeLevel", gradeLevel)
+                .putString("subject", subject)
+                .apply(); // 异步存储
+    }
+    private void checkAndShowUploadOptions() {
+        if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
+            new AlertDialog.Builder(getContext())
+                    .setMessage("请先选择年级和科目")
+                    .setPositiveButton("确定", null)
+                    .show();
+        } else {
+            showUploadOptions();
+        }
+    }
+    private void showUploadOptions() {
+        final CharSequence[] options = {"拍照", "从图库选择", "选取文件"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("选择上传方式")
+                .setItems(options, (dialog, which) -> {
+
+                    if (uploadMethodListener != null) {
+                        // 传递所有必要参数
+                        uploadMethodListener.onUploadMethodSelected(
+                                which,
+                                selectedGradeCategory,
+                                selectedGradeLevel,
+                                selectedSubject
+                        );
+                    }
+                });
+        builder.show();
+    }
+
+    public interface OnUploadMethodSelectedListener {
+        void onUploadMethodSelected(int method, String grade, String level, String subject);
+    }
+
+    private OnUploadMethodSelectedListener uploadMethodListener;
+
+    public void setOnUploadMethodSelectedListener(OnUploadMethodSelectedListener listener) {
+        this.uploadMethodListener = listener;
+    }
+
+
 }
