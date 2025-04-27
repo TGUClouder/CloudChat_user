@@ -24,6 +24,7 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -49,15 +50,15 @@ public class LectureFragment extends Fragment {
         binding = FragmentLectureBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         PhotoWebSocketManager.getInstance();
-        Button JumpToDanmaku = binding.danmaku;
+
         Button selectGradeSubjectButton = binding.selectGradeSubjectButton;
-        Button chooseImageButton = binding.uploadButton;
         uploadButton = binding.uploadFinalButton;
-
         uploadButton.setVisibility(View.GONE);
+        selectGradeSubjectButton.setOnClickListener(v -> {
+            // 1. 先弹出年级科目选择框
+            showGradeSelectionDialogThenPickImage();
+        });
 
-        selectGradeSubjectButton.setOnClickListener(v -> showGradeSelectionDialog());
-        chooseImageButton.setOnClickListener(v -> dispatchPickImageIntent());
         uploadButton.setOnClickListener(v -> {
             if (selectedImageUri != null) {
                 uploadFile(selectedImageUri);
@@ -65,22 +66,31 @@ public class LectureFragment extends Fragment {
                 Log.e("LectureFragment", "未选择图片");
             }
         });
-        JumpToDanmaku.setOnClickListener(v -> {
-            NavController navController = Navigation.findNavController(v);
-            navController.navigate(R.id.navigation_danmaku);
-        });
+
+
 
         return root;
     }
-
-    private void showGradeSelectionDialog() {
+    private void showGradeSelectionDialogThenPickImage() {
         SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
-        dialog.setOnOptionsSelectedListener((gradeCategory, gradeLevel, subject) -> {
-            saveSelectionToPreferences(gradeCategory, gradeLevel, subject);
-            binding.selectGradeSubjectButton.setText(gradeCategory + " " + gradeLevel + " - " + subject);
+        dialog.setOnOptionsSelectedListener(new SelectOptionsDialogFragment.OnOptionsSelectedListener() {
+            @Override
+            public void onGradeAndSubjectSelected(String gradeCategory, String gradeLevel, String subject) {
+                saveSelectionToPreferences(gradeCategory, gradeLevel, subject);
+                binding.selectGradeSubjectButton.setText(gradeCategory + " " + gradeLevel + " - " + subject);
+            }
+
+            @Override
+            public void onUploadImageRequested(DialogFragment dialog) {
+                dispatchPickImageIntent(); // 打开图片选择器
+                dialog.dismiss(); // 选择图片后关闭弹窗
+            }
         });
+
         dialog.show(getParentFragmentManager(), "SelectOptionsDialog");
     }
+
+
     private void saveSelectionToPreferences(String gradeCategory, String gradeLevel, String subject) {
         if (getContext() == null) return;
 

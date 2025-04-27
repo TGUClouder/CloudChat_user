@@ -7,6 +7,7 @@ import static com.example.cloudchat_user.dao.UserDao.update_password;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -25,6 +26,8 @@ import android.os.Looper;
 import android.widget.Toast;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
 public class AccountFragment extends Fragment {
 
@@ -99,14 +102,12 @@ public class AccountFragment extends Fragment {
     }
 
     private void showManageInfoDialog() {
-        // 获取当前登录的用户名
         String currentUsername = sharedPreferences.getString(KEY_USERNAME, "");
         if (currentUsername.isEmpty()) {
             showToast("获取用户信息失败");
             return;
         }
 
-        // 获取用户信息
         new Thread(() -> {
             try {
                 ArrayList<String> userInfo = get_userinfo(currentUsername);
@@ -121,34 +122,38 @@ public class AccountFragment extends Fragment {
                     return;
                 }
 
-                // 主线程更新UI
                 requireActivity().runOnUiThread(() -> {
-                    // 创建个人信息管理弹窗
                     View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_manage_info, null);
 
-                    // 获取输入框
                     EditText usernameInput = dialogView.findViewById(R.id.usernameInput);
                     EditText firstNameInput = dialogView.findViewById(R.id.firstNameInput);
                     EditText lastNameInput = dialogView.findViewById(R.id.lastNameInput);
                     EditText ageInput = dialogView.findViewById(R.id.ageInput);
                     EditText emailInput = dialogView.findViewById(R.id.emailInput);
-                    EditText educationInput = dialogView.findViewById(R.id.educationInput);
                     EditText birthdateInput = dialogView.findViewById(R.id.birthdateInput);
                     EditText hobbyInput = dialogView.findViewById(R.id.hobbyInput);
+
+                    Spinner educationSpinner = dialogView.findViewById(R.id.educationSpinner);
                     Spinner gradeSpinner = dialogView.findViewById(R.id.gradeSpinner);
                     RadioGroup genderRadioGroup = dialogView.findViewById(R.id.genderRadioGroup);
 
-                    // 设置用户名（不可修改）
                     usernameInput.setText(currentUsername);
                     usernameInput.setEnabled(false);
+                    firstNameInput.setEnabled(false);
+                    lastNameInput.setEnabled(false);
 
-                    // 设置年级选择框适配器
-                    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                    // 设置 Spinner 适配器
+                    ArrayAdapter<CharSequence> educationAdapter = ArrayAdapter.createFromResource(
+                            getContext(), R.array.education_options, android.R.layout.simple_spinner_item);
+                    educationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    educationSpinner.setAdapter(educationAdapter);
+
+                    ArrayAdapter<CharSequence> gradeAdapter = ArrayAdapter.createFromResource(
                             getContext(), R.array.grade_options, android.R.layout.simple_spinner_item);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    gradeSpinner.setAdapter(adapter);
+                    gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    gradeSpinner.setAdapter(gradeAdapter);
 
-                    // 读取用户信息
+                    // 获取并填充用户数据
                     String userFirstName = userInfo.get(1);
                     String userLastName = userInfo.get(2);
                     String userAge = userInfo.get(3);
@@ -159,69 +164,65 @@ public class AccountFragment extends Fragment {
                     String userHobby = userInfo.get(8);
                     String userGrade = userInfo.get(9);
 
-                    // 设置用户信息
                     firstNameInput.setText(userFirstName);
                     lastNameInput.setText(userLastName);
                     ageInput.setText(userAge);
                     emailInput.setText(userEmail);
-                    educationInput.setText(userEducation);
                     birthdateInput.setText(userBirthdate);
                     hobbyInput.setText(userHobby);
 
-                    // 设置年级
-                    int gradePosition = adapter.getPosition(userGrade);
-                    gradeSpinner.setSelection(gradePosition);
+                    educationSpinner.setSelection(educationAdapter.getPosition(userEducation));
+                    gradeSpinner.setSelection(gradeAdapter.getPosition(userGrade));
 
-                    // 设置性别
                     if ("男".equals(userGender)) {
                         genderRadioGroup.check(R.id.maleRadioButton);
                     } else {
                         genderRadioGroup.check(R.id.femaleRadioButton);
                     }
 
-                    // 修改按钮
+                    // 设置日期选择器
+                    birthdateInput.setOnClickListener(v -> {
+                        Calendar calendar = Calendar.getInstance();
+                        DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
+                                (view, year, month, dayOfMonth) -> {
+                                    String date = year + "-" + String.format("%02d", month + 1) + "-" + String.format("%02d", dayOfMonth);
+                                    birthdateInput.setText(date);
+                                },
+                                calendar.get(Calendar.YEAR),
+                                calendar.get(Calendar.MONTH),
+                                calendar.get(Calendar.DAY_OF_MONTH));
+                        datePickerDialog.show();
+                    });
+
                     Button modifyButton = dialogView.findViewById(R.id.modifyButton);
                     AlertDialog dialog = new AlertDialog.Builder(getContext())
                             .setView(dialogView)
                             .create();
 
-                    // 修改按钮点击事件
                     modifyButton.setOnClickListener(v -> {
                         String selectedFirstName = firstNameInput.getText().toString().trim();
                         String selectedLastName = lastNameInput.getText().toString().trim();
                         String selectedAge = ageInput.getText().toString().trim();
                         String selectedEmail = emailInput.getText().toString().trim();
                         String selectedGender = genderRadioGroup.getCheckedRadioButtonId() == R.id.maleRadioButton ? "男" : "女";
-                        String selectedEducation = educationInput.getText().toString().trim();
+                        String selectedEducation = educationSpinner.getSelectedItem().toString();
                         String selectedBirthdate = birthdateInput.getText().toString().trim();
                         String selectedHobby = hobbyInput.getText().toString().trim();
                         String selectedGrade = gradeSpinner.getSelectedItem().toString();
 
-                        // 处理未修改的字段
-                        if (selectedFirstName.equals(userFirstName)) selectedFirstName = "null";
-                        if (selectedLastName.equals(userLastName)) selectedLastName = "null";
-                        if (selectedAge.equals(userAge)) selectedAge = "null";
-                        if (selectedEmail.equals(userEmail)) selectedEmail = "null";
-                        if (selectedEducation.equals(userEducation)) selectedEducation = "null";
-                        if (selectedBirthdate.equals(userBirthdate)) selectedBirthdate = "null";
-                        if (selectedHobby.equals(userHobby)) selectedHobby = "null";
-                        if (selectedGrade.equals(userGrade)) selectedGrade = "null";
-                        if (selectedGender.equals(userGender)) selectedGender = "null";
-
-                        // 组装上传数据
+                        // 判断修改内容
                         ArrayList<String> updateInfo = new ArrayList<>();
-                        updateInfo.add(currentUsername);  // 用户名（不可修改）
-                        updateInfo.add(selectedFirstName);
-                        updateInfo.add(selectedLastName);
-                        updateInfo.add(selectedAge);
-                        updateInfo.add(selectedEmail);
-                        updateInfo.add(selectedGender);
-                        updateInfo.add(selectedEducation);
-                        updateInfo.add(selectedBirthdate);
-                        updateInfo.add(selectedHobby);
-                        updateInfo.add(selectedGrade);
+                        updateInfo.add(currentUsername);
+                        updateInfo.add(selectedFirstName.equals(userFirstName) ? "null" : selectedFirstName);
+                        updateInfo.add(selectedLastName.equals(userLastName) ? "null" : selectedLastName);
+                        updateInfo.add(selectedAge.equals(userAge) ? "null" : selectedAge);
+                        updateInfo.add(selectedEmail.equals(userEmail) ? "null" : selectedEmail);
+                        updateInfo.add(selectedGender.equals(userGender) ? "null" : selectedGender);
+                        updateInfo.add(selectedEducation.equals(userEducation) ? "null" : selectedEducation);
+                        updateInfo.add(selectedBirthdate.equals(userBirthdate) ? "null" : selectedBirthdate);
+                        updateInfo.add(selectedHobby.equals(userHobby) ? "null" : selectedHobby);
+                        updateInfo.add(selectedGrade.equals(userGrade) ? "null" : selectedGrade);
 
-                        // 判断是否有修改
                         boolean hasChanges = false;
                         for (String value : updateInfo) {
                             if (!"null".equals(value)) {
@@ -235,7 +236,6 @@ public class AccountFragment extends Fragment {
                             return;
                         }
 
-                        // 后台线程更新用户信息
                         new Thread(() -> {
                             try {
                                 String result = UserDao.update_userinfo(updateInfo);
@@ -256,6 +256,7 @@ public class AccountFragment extends Fragment {
                     });
 
                     dialog.show();
+                    dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
                 });
             } catch (IOException e) {
                 showToast("获取用户信息失败：" + e.getMessage());
@@ -328,6 +329,7 @@ public class AccountFragment extends Fragment {
         });
 
         dialog.show();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
     }
 
 
@@ -398,6 +400,7 @@ public class AccountFragment extends Fragment {
         });
 
         dialog.show();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
     }
 
 
@@ -468,6 +471,7 @@ public class AccountFragment extends Fragment {
 
         // 显示弹窗
         dialog.show();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
     }
 
     // 显示 Toast，确保在 UI 线程运行
@@ -478,12 +482,9 @@ public class AccountFragment extends Fragment {
     }
 
 
-    // 显示注册弹窗
     private void showRegisterDialog() {
-        // 加载注册弹窗布局
         View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_resister, null);
 
-        // 获取输入框和按钮
         EditText usernameInput = dialogView.findViewById(R.id.usernameInput);
         EditText passwordInput = dialogView.findViewById(R.id.passwordInput);
         EditText firstNameInput = dialogView.findViewById(R.id.firstNameInput);
@@ -491,17 +492,37 @@ public class AccountFragment extends Fragment {
         EditText ageInput = dialogView.findViewById(R.id.ageInput);
         EditText emailInput = dialogView.findViewById(R.id.emailInput);
         RadioGroup genderGroup = dialogView.findViewById(R.id.genderGroup);
-        EditText educationInput = dialogView.findViewById(R.id.educationInput);
+        Spinner educationSpinner = dialogView.findViewById(R.id.educationSpinner);
         EditText birthdateInput = dialogView.findViewById(R.id.birthdateInput);
         EditText hobbyInput = dialogView.findViewById(R.id.hobbyInput);
         Spinner gradeSpinner = dialogView.findViewById(R.id.gradeSpinner);
         Button registerSubmitButton = dialogView.findViewById(R.id.registerSubmitButton);
 
-        // 设置年级选择框适配器
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+        // 学历下拉框
+        ArrayAdapter<CharSequence> eduAdapter = ArrayAdapter.createFromResource(
+                getContext(), R.array.education_options, android.R.layout.simple_spinner_item);
+        eduAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        educationSpinner.setAdapter(eduAdapter);
+
+        // 年级下拉框
+        ArrayAdapter<CharSequence> gradeAdapter = ArrayAdapter.createFromResource(
                 getContext(), R.array.grade_options, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        gradeSpinner.setAdapter(adapter);
+        gradeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        gradeSpinner.setAdapter(gradeAdapter);
+
+        // 设置生日点击弹出日期选择器
+        birthdateInput.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            DatePickerDialog datePickerDialog = new DatePickerDialog(getContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        String dateStr = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+                        birthdateInput.setText(dateStr);
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH));
+            datePickerDialog.show();
+        });
 
         AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setView(dialogView)
@@ -514,12 +535,11 @@ public class AccountFragment extends Fragment {
             String lastName = lastNameInput.getText().toString().trim();
             String age = ageInput.getText().toString().trim();
             String email = emailInput.getText().toString().trim();
-            String education = educationInput.getText().toString().trim();
+            String education = educationSpinner.getSelectedItem().toString();
             String birthdate = birthdateInput.getText().toString().trim();
             String hobby = hobbyInput.getText().toString().trim();
             String selectedGrade = gradeSpinner.getSelectedItem().toString();
 
-            // 获取选中的性别
             int selectedGenderId = genderGroup.getCheckedRadioButtonId();
             String gender = "";
             if (selectedGenderId == R.id.genderMale) {
@@ -528,29 +548,28 @@ public class AccountFragment extends Fragment {
                 gender = "女";
             }
 
-            // 确保所有必填项均已填写
             if (!username.isEmpty() && !password.isEmpty() && !firstName.isEmpty() && !lastName.isEmpty() &&
-                    !age.isEmpty() && !email.isEmpty() && !gender.isEmpty() && !education.isEmpty() && !birthdate.isEmpty()) {
-                ArrayList<String> signupData = new ArrayList<>();
-                signupData.add(username);  // 用户名
-                signupData.add(password);  // 密码
-                signupData.add(firstName); // 名
-                signupData.add(lastName);  // 姓
-                signupData.add(age);       // 年龄
-                signupData.add(email);     // 电子邮箱
-                signupData.add(gender);    // 性别
-                signupData.add(education); // 学历
-                signupData.add(birthdate); // 生日
-                signupData.add(hobby);     // 兴趣爱好
-                signupData.add(selectedGrade); // 年级
+                    !age.isEmpty() && !email.isEmpty() && !gender.isEmpty() &&
+                    !education.isEmpty() && !birthdate.isEmpty()) {
 
-                // 开启子线程进行网络请求
+                ArrayList<String> signupData = new ArrayList<>();
+                signupData.add(username);
+                signupData.add(password);
+                signupData.add(firstName);
+                signupData.add(lastName);
+                signupData.add(age);
+                signupData.add(email);
+                signupData.add(gender);
+                signupData.add(education);
+                signupData.add(birthdate);
+                signupData.add(hobby);
+                signupData.add(selectedGrade);
+
                 new Thread(() -> {
                     try {
                         String result = UserDao.signup(signupData);
                         if (getActivity() != null) {
                             getActivity().runOnUiThread(() -> {
-                                Log.d("RegisterDebug", "UserDao.signup 返回结果: " + result);
                                 if ("ConnectionFailed".equals(result)) {
                                     Toast.makeText(getContext(), "注册失败，连接服务器失败", Toast.LENGTH_SHORT).show();
                                 } else if (result.contains("error")) {
@@ -571,9 +590,8 @@ public class AccountFragment extends Fragment {
                     } catch (Exception e) {
                         Log.e("RegisterDebug", "注册异常", e);
                         if (getActivity() != null) {
-                            getActivity().runOnUiThread(() -> {
-                                Toast.makeText(getContext(), "注册失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
-                            });
+                            getActivity().runOnUiThread(() ->
+                                    Toast.makeText(getContext(), "注册失败：" + e.getMessage(), Toast.LENGTH_SHORT).show());
                         }
                     }
                 }).start();
@@ -583,8 +601,8 @@ public class AccountFragment extends Fragment {
         });
 
         dialog.show();
+        dialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
     }
-
 
 
     private void logout() {

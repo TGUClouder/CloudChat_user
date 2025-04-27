@@ -23,21 +23,23 @@
         app:layout_constraintStart_toStartOf="@id/diary_section"
         app:layout_constraintTop_toBottomOf="@id/diary_section" />
     <!-- 心情日记部分 -->
+    <!-- 心灵树洞标题 -->
     <LinearLayout
         android:id="@+id/tree_section"
         android:layout_width="181dp"
         android:layout_height="210dp"
-        android:layout_marginBottom="92dp"
+        android:layout_marginBottom="120dp"
         android:background="@drawable/tree"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.478"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintVertical_weight="1">
 
     </LinearLayout>
-    <!-- 心灵树洞标题 -->
+
     <TextView
         android:id="@+id/tv_tree_title"
         android:layout_width="wrap_content"

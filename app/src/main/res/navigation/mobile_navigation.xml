@@ -13,7 +13,7 @@
         tools:layout="@layout/fragment_lecture">
         <action
             android:id="@+id/action_lecture_to_danmaku"
-            app:destination="@layout/fragment_danmaku" />
+            app:destination="@id/navigation_danmaku" />
     </fragment>
     <fragment
         android:id="@+id/navigation_danmaku"
@@ -57,21 +57,6 @@
         android:name="com.example.cloudchat_user.ui.mind_sanctuary.ChatFragment"
         android:label="聊天"
         tools:layout="@layout/fragment_chat" />
-
-    <!-- Tree Fragment -->
-    <fragment
-        android:id="@+id/navigation_tree"
-        android:name="com.example.cloudchat_user.ui.mind_sanctuary.TreeFragment"
-        android:label="@string/title_tree"
-        tools:layout="@layout/fragment_tree">
-        <action
-            android:id="@+id/action_treeFragment_to_chatFragment"
-            app:destination="@id/chatFragment"
-            app:enterAnim="@anim/nav_default_enter_anim"
-            app:exitAnim="@anim/nav_default_exit_anim"
-            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
-            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
-    </fragment>
 
     <!-- Account Fragment -->
     <fragment
