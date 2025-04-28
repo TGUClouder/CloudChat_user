@@ -1,6 +1,7 @@
 package com.example.cloudchat_user.ui.mind_sanctuary;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -176,10 +178,17 @@ public class ChatFragment extends Fragment implements WebSocketManager.WebSocket
     @Override
     public void onFailure(Throwable t) {
         Log.e(TAG, "WebSocket connection failed", t);
-        getActivity().runOnUiThread(() -> {
-            Toast.makeText(getContext(), "连接失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-        });
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            activity.runOnUiThread(() -> {
+                Context context = getContext();
+                if (context != null) {
+                    Toast.makeText(context, "连接失败: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
+
 
     @Override
     public void onClosed() {

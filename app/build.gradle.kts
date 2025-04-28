@@ -52,7 +52,8 @@ dependencies {
 //    implementation(libs.media3.exoplayer.ffmpeg)
     // UI控件
     implementation(libs.media3.ui)
-
+    implementation ("org.java-websocket:Java-WebSocket:1.5.3")
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.aar"))))
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)

@@ -1,6 +1,7 @@
 package com.example.cloudchat_user.network;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.java_websocket.client.WebSocketClient;
@@ -13,7 +14,7 @@ public class PhotoWebSocketManager {
     private static final int RECONNECT_DELAY = 5000; // 5秒重连
     private static PhotoWebSocketManager instance;
     private WebSocketClient webSocketClient;
-    private final Handler handler = new Handler();
+    private final Handler handler = new Handler(Looper.getMainLooper()); // 主线程 Handler
     private boolean isManuallyClosed = false;
     private boolean isReconnecting = false;
 
@@ -33,28 +34,28 @@ public class PhotoWebSocketManager {
             webSocketClient = new WebSocketClient(new URI(SERVER_URL)) {
                 @Override
                 public void onOpen(ServerHandshake handshakedata) {
-                    Log.d("WebSocket", " WebSocket 连接成功");
+                    Log.d("WebSocket", "连接成功");
                     isReconnecting = false;
                 }
 
                 @Override
                 public void onMessage(String message) {
-                    Log.d("WebSocket", " 收到消息: " + message);
+                    Log.d("WebSocket", "收到消息: " + message);
                 }
 
                 @Override
                 public void onClose(int code, String reason, boolean remote) {
-                    Log.w("WebSocket", " 连接关闭: " + reason);
+                    Log.w("WebSocket", "连接关闭: " + reason);
                     if (!isManuallyClosed) {
-                        reconnect();
+                        scheduleReconnect();
                     }
                 }
 
                 @Override
                 public void onError(Exception ex) {
-                    Log.e("WebSocket", " 连接错误", ex);
+                    Log.e("WebSocket", "连接错误", ex);
                     if (!isManuallyClosed) {
-                        reconnect();
+                        scheduleReconnect();
                     }
                 }
             };
@@ -62,19 +63,19 @@ public class PhotoWebSocketManager {
             webSocketClient.connect();
 
         } catch (Exception e) {
-            Log.e("WebSocket", " 初始化失败", e);
-            reconnect(); // 如果初始化失败，也尝试重连
+            Log.e("WebSocket", "初始化失败", e);
+            scheduleReconnect(); // 异常也安排重连
         }
     }
 
-    private void reconnect() {
+    private void scheduleReconnect() {
         if (isReconnecting) return;
 
         isReconnecting = true;
-        Log.d("WebSocket", " 准备在 " + RECONNECT_DELAY + "ms 后重连...");
+        Log.d("WebSocket", "将在 " + RECONNECT_DELAY + "ms 后尝试重连...");
 
         handler.postDelayed(() -> {
-            Log.d("WebSocket", " 开始重连...");
+            Log.d("WebSocket", "执行重连...");
             connectWebSocket();
         }, RECONNECT_DELAY);
     }
@@ -82,9 +83,9 @@ public class PhotoWebSocketManager {
     public void sendMessage(String message) {
         if (webSocketClient != null && webSocketClient.isOpen()) {
             webSocketClient.send(message);
-            Log.d("WebSocket", " 发送消息: " + message);
+            Log.d("WebSocket", "发送消息: " + message);
         } else {
-            Log.e("WebSocket", " WebSocket 未连接，无法发送消息");
+            Log.e("WebSocket", "WebSocket 未连接，无法发送消息");
         }
     }
 

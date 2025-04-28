@@ -8,7 +8,8 @@
         android:id="@+id/loginLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:background="#F9F9F9">
 
         <ImageView
             android:id="@+id/profileImage"
@@ -21,27 +22,29 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- 登录按钮 -->
         <Button
             android:id="@+id/loginButton"
             android:layout_width="180dp"
             android:layout_height="50dp"
             android:layout_marginTop="16dp"
             android:text="登录"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/profileImage"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profileImage" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/rounded_button"
+            android:textColor="@android:color/white" />
 
-        <!-- 注册按钮 -->
         <Button
             android:id="@+id/registerButton"
             android:layout_width="180dp"
             android:layout_height="50dp"
             android:layout_marginTop="16dp"
             android:text="注册"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/loginButton"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/loginButton" />
+            app:layout_constraintEnd_toEndOf="parent"
+            android:background="@drawable/rounded_button"
+            android:textColor="@android:color/white" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -50,63 +53,85 @@
         android:id="@+id/userLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#F9F9F9"
         android:padding="16dp"
         android:visibility="gone">
 
-        <ImageView
-            android:id="@+id/userProfileImage"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+        <androidx.cardview.widget.CardView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
             android:layout_marginTop="32dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/studentphoto"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            android:padding="24dp">
 
-        <Button
-            android:id="@+id/manageInfoButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
-            android:text="管理个人信息"
-            app:layout_constraintTop_toBottomOf="@id/userProfileImage"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
 
-        <Button
-            android:id="@+id/changePasswordButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="修改密码"
-            app:layout_constraintTop_toBottomOf="@id/manageInfoButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+                <!-- 圆形头像 -->
+                <ImageView
+                    android:id="@+id/userProfileImage"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:src="@drawable/studentphoto"
+                    android:scaleType="centerCrop"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/circle_mask"
+                    android:padding="2dp" />
 
-        <!-- 退出登录按钮 -->
-        <Button
-            android:id="@+id/signOutButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="退出登录"
-            android:textColor="#FF0000"
-            app:layout_constraintTop_toBottomOf="@id/changePasswordButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+                <!-- 管理个人信息按钮 -->
+                <Button
+                    android:id="@+id/manageInfoButton"
+                    android:layout_width="200dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="48dp"
+                    android:text="管理个人信息"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/rounded_button"
+                    android:textColor="@android:color/white" />
 
-        <!-- 注销按钮 -->
-        <Button
-            android:id="@+id/logoutButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="注销账户"
-            app:layout_constraintTop_toBottomOf="@id/signOutButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+                <!-- 修改密码 -->
+                <Button
+                    android:id="@+id/changePasswordButton"
+                    android:layout_width="200dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="48dp"
+                    android:text="修改密码"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rounded_button"
+                    android:textColor="@android:color/white" />
 
+                <!-- 退出登录 -->
+                <Button
+                    android:id="@+id/signOutButton"
+                    android:layout_width="200dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="48dp"
+                    android:text="退出登录"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/rounded_button_red"
+                    android:textColor="@android:color/white" />
+
+                <!-- 注销账户 -->
+                <Button
+                    android:id="@+id/logoutButton"
+                    android:layout_width="200dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_height="48dp"
+                    android:text="注销账户"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="100dp"
+                    android:background="@drawable/rounded_button_red"
+                    android:textColor="@android:color/white" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </FrameLayout>
