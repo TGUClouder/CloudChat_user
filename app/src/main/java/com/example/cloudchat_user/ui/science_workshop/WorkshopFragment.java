@@ -10,7 +10,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -123,7 +122,7 @@ public class WorkshopFragment extends Fragment {
     }
 
     private String BuildDownloadURL(String section){
-        String base_ip = "http://182.92.183.192";
+        String base_ip = "http://59.110.173.159";
         String append_url = "/live/";
         final String[] file_name = new String[]{""};
 
@@ -228,9 +227,9 @@ public class WorkshopFragment extends Fragment {
     }
 
     private void ShowLive(View v) {
-        editor.putBoolean("votable", true);
-        editor.commit();
-        Toast.makeText(getContext(), "已解除投票限制,请重启应用！", Toast.LENGTH_SHORT).show();
+//        editor.putBoolean("votable", true);
+//        editor.commit();
+//        Toast.makeText(getContext(), "已解除投票限制,请重启应用！", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getActivity(), PlayerActivity.class);
         intent.putExtra("mode","live");
         startActivity(intent);

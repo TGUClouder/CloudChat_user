@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.OpenableColumns;
 import android.util.Base64;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -20,10 +21,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -31,9 +37,12 @@ import androidx.navigation.Navigation;
 
 import com.example.cloudchat_user.R;
 import com.example.cloudchat_user.dao.MaterialDao;
+import com.example.cloudchat_user.dao.UserDao;
 import com.example.cloudchat_user.network.PhotoWebSocketManager;
 import com.example.cloudchat_user.databinding.FragmentLectureBinding;
+import com.example.cloudchat_user.ui.PlayerActivity;
 
+import org.java_websocket.client.WebSocketClient;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -45,19 +54,52 @@ public class LectureFragment extends Fragment {
     private Uri selectedImageUri;
     private Button uploadButton;
     private String selectedGradeCategory, selectedGradeLevel, selectedSubject;
+    private boolean keepCheckingStatus = false;
+    private final int CHECK_INTERVAL_MS = 5000; // 每5秒检查一次
+
+    private void startStatusPolling() {
+        keepCheckingStatus = true;
+        new Thread(() -> {
+            while (keepCheckingStatus) {
+                checkPhotoStatus();
+                try {
+                    Thread.sleep(CHECK_INTERVAL_MS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private void stopStatusPolling() {
+        keepCheckingStatus = false;
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentLectureBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        TextView acceptedOrderLink = binding.acceptedOrderLink;
+        acceptedOrderLink.setEnabled(false);
+        acceptedOrderLink.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
+        checkPhotoStatus();
+        startStatusPolling();
         PhotoWebSocketManager.getInstance();
-
         Button selectGradeSubjectButton = binding.selectGradeSubjectButton;
         uploadButton = binding.uploadFinalButton;
         uploadButton.setVisibility(View.GONE);
         selectGradeSubjectButton.setOnClickListener(v -> {
-            // 1. 先弹出年级科目选择框
-            showGradeSelectionDialogThenPickImage();
+            new Thread(() -> {
+                boolean canUpload = canUploadNewImage();
+                requireActivity().runOnUiThread(() -> {
+                    if (canUpload) {
+                        showGradeSelectionDialogThenPickImage();
+                    } else {
+                        showErrorDialog("当前图片还未被接单，请等待讲解完成后再上传新图片。");
+                    }
+                });
+            }).start();
         });
+
 
         uploadButton.setOnClickListener(v -> {
             if (selectedImageUri != null) {
@@ -66,11 +108,54 @@ public class LectureFragment extends Fragment {
                 Log.e("LectureFragment", "未选择图片");
             }
         });
+        acceptedOrderLink.setOnClickListener(v -> {
+            Intent intent = new Intent(requireContext(), PlayerActivity.class);
+            startActivity(intent);
+        });
 
 
 
         return root;
     }
+
+    private void checkPhotoStatus() {
+        new Thread(() -> {
+            try {
+                SharedPreferences prefs = requireActivity().getSharedPreferences("upload_prefs", Context.MODE_PRIVATE);
+                String uploadId = prefs.getString("upload_id", null);
+                if (uploadId == null) return;
+                HashMap<String, ArrayList<String>> allData = MaterialDao.get_all_res();
+                if (allData.containsKey(uploadId)) {
+                    ArrayList<String> data = allData.get(uploadId);
+                    if (data.size() >= 3) {
+                        String status = data.get(2);
+                        requireActivity().runOnUiThread(() -> {
+                            TextView acceptedOrderLink = binding.acceptedOrderLink;
+                            if ("未接单".equals(status)) {
+                                acceptedOrderLink.setText("未接单，请等待");
+                                acceptedOrderLink.setEnabled(false);
+                                acceptedOrderLink.setTextColor(ContextCompat.getColor(requireContext(), android.R.color.darker_gray));
+                            } else {
+                                acceptedOrderLink.setText("已接单，点击查看讲解");
+                                stopStatusPolling();
+                                acceptedOrderLink.setEnabled(true);
+                            }
+                        });
+                    } else {
+                        Log.e("LectureFragment", "data 长度不足 3，无法获取 status");
+                    }
+                } else {
+                    Log.e("LectureFragment", "allData 中不包含 uploadId: " + uploadId);
+                }
+            } catch (Exception e) {
+                Log.e("LectureFragment", "checkPhotoStatus error", e);
+            }
+        }).start();
+    }
+
+
+
+
     private void showGradeSelectionDialogThenPickImage() {
         SelectOptionsDialogFragment dialog = new SelectOptionsDialogFragment();
         dialog.setOnOptionsSelectedListener(new SelectOptionsDialogFragment.OnOptionsSelectedListener() {
@@ -127,6 +212,27 @@ public class LectureFragment extends Fragment {
             showImagePopup(imageUri);
         }
     }
+    private boolean canUploadNewImage() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("upload_prefs", Context.MODE_PRIVATE);
+        String uploadId = prefs.getString("upload_id", null);
+        if (uploadId == null) return true; // 没有上传记录，可以上传
+
+        try {
+            HashMap<String, ArrayList<String>> allData = MaterialDao.get_all_res();
+            if (allData.containsKey(uploadId)) {
+                ArrayList<String> data = allData.get(uploadId);
+                if (data.size() >= 3) {
+                    String status = data.get(2);
+                    return !"未接单".equals(status); // 只有不是“未接单”才可以上传新图片
+                }
+            }
+            return true; // 没有找到对应数据，默认允许上传
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // 异常时默认允许上传，防止用户卡住
+        }
+    }
+
 
     private void showImagePopup(Uri imageUri) {
         LayoutInflater inflater = LayoutInflater.from(requireContext());
@@ -148,10 +254,12 @@ public class LectureFragment extends Fragment {
     private void uploadFile(Uri fileUri) {
         Log.d("LectureFragment", "开始上传图片: " + fileUri.toString());
         loadSelectionFromPreferences();
+
         if (selectedGradeCategory == null || selectedGradeLevel == null || selectedSubject == null) {
             showErrorDialog("请先选择年级和科目！");
             return;
         }
+
         String remark = selectedGradeCategory + " - " + selectedGradeLevel + " - " + selectedSubject + " - ";
 
         new Thread(() -> {
@@ -165,23 +273,56 @@ public class LectureFragment extends Fragment {
                 String fileName = timestamp + "_" + originalFileName;
                 String fileUrl = "http://47.94.207.38/ljh/questions/" + fileName;
 
-                // 读取文件数据并转换为 Base64
+                // 转为 Base64
                 String base64Image = encodeImageToBase64(fileUri);
 
                 // 构造 JSON 消息
                 JSONObject json = new JSONObject();
                 json.put("fileName", fileName);
                 json.put("imageData", base64Image);
-                // 发送给 WebSocket 服务器
-                PhotoWebSocketManager.getInstance().sendMessage(json.toString());
-                MaterialDao.set_url_remark(fileUrl, remark);
-                requireActivity().runOnUiThread(() -> showSuccessDialog("图片上传成功！"));
+
+                // 获取 WebSocket 实例
+                PhotoWebSocketManager wsManager = PhotoWebSocketManager.getInstance();
+                int retryCount = 0;
+                while ((wsManager == null || !wsManagerIsConnected(wsManager)) && retryCount < 10) {
+                    Log.d("LectureFragment", "等待 WebSocket 连接...");
+                    Thread.sleep(500);
+                    retryCount++;
+                }
+
+                if (wsManager != null && wsManagerIsConnected(wsManager)) {
+                    wsManager.sendMessage(json.toString());
+                    String id = MaterialDao.set_url_remark(fileUrl, remark);
+                    Log.d("LectureFragment", "上传成功，返回的ID为: " + id);
+                    SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("upload_prefs", Context.MODE_PRIVATE);
+                    sharedPreferences.edit().putString("upload_id", id).apply();
+
+
+                    requireActivity().runOnUiThread(() -> showSuccessDialog("图片上传成功！"));
+                } else {
+                    requireActivity().runOnUiThread(() -> showErrorDialog("WebSocket 未连接，上传失败"));
+                }
+
             } catch (Exception e) {
                 e.printStackTrace();
                 requireActivity().runOnUiThread(() -> showErrorDialog("上传异常: " + e.getMessage()));
             }
         }).start();
     }
+
+    // 判断 WebSocket 是否连接
+    private boolean wsManagerIsConnected(PhotoWebSocketManager manager) {
+        try {
+            java.lang.reflect.Field field = PhotoWebSocketManager.class.getDeclaredField("webSocketClient");
+            field.setAccessible(true);
+            WebSocketClient client = (WebSocketClient) field.get(manager);
+            return client != null && client.isOpen();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
     private String encodeImageToBase64(Uri imageUri) throws Exception {
         InputStream inputStream = requireContext().getContentResolver().openInputStream(imageUri);
@@ -224,6 +365,8 @@ public class LectureFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        stopStatusPolling();
         binding = null;
+
     }
 }

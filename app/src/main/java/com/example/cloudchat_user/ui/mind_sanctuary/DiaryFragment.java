@@ -3,6 +3,7 @@ package com.example.cloudchat_user.ui.mind_sanctuary;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,6 +143,7 @@ public class DiaryFragment extends Fragment {
                 });
             } catch (IOException | JSONException e) {
                 showToast("获取日记失败：" + e.getMessage());
+                Log.e("DiaryFrag", e.toString());
             }
         }).start();
     }
