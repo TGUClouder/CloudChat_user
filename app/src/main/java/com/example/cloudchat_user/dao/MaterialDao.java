@@ -27,37 +27,41 @@ public final class MaterialDao {
     // 获取所有链接
     public static HashMap<String, ArrayList<String>> get_all_res() throws IOException, JSONException {
         Request request = new Request.Builder()
-                .url(baseURL+tableUrl_m)
+                .url(baseURL + tableUrl_m)
                 .build();
-        HashMap<String, ArrayList<String>> hashMap =new HashMap<>();
-        ArrayList<String> arrayList = new ArrayList<>();
-        try(Response response = okHttpClient.newCall(request).execute()){
+        HashMap<String, ArrayList<String>> hashMap = new HashMap<>();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
             if (response.isSuccessful() && response.body() != null) {
                 String string = response.body().string();
                 Gson gson = new Gson();
-                if(string.contains("error")){
+                if (string.contains("error")) {
                     ErrorResponse errorResponse = gson.fromJson(string, ErrorResponse.class);
-                    arrayList.add(errorResponse.getError());
-                    hashMap.put("error", arrayList);
+                    ArrayList<String> errorList = new ArrayList<>();
+                    errorList.add(errorResponse.getError());
+                    hashMap.put("error", errorList);
                     return hashMap;
-                }else{
-
+                } else {
                     JSONObject jsonObject = new JSONObject(string);
-                    if(jsonObject.isNull("message")){
-                        arrayList.add("null");
-                        hashMap.put("null",arrayList);
+                    if (jsonObject.isNull("message")) {
+                        ArrayList<String> nullList = new ArrayList<>();
+                        nullList.add("null");
+                        hashMap.put("null", nullList);
                         return hashMap;
-                    }
-                    else{
-                        JSONObject jsonObject1 = jsonObject.getJSONObject("message");
-                        for (Iterator<String> it = jsonObject1.keys(); it.hasNext(); ) {
-                            ArrayList<String> arrayList_ = new ArrayList<>();
+                    } else {
+                        JSONObject message = jsonObject.getJSONObject("message");
+                        for (Iterator<String> it = message.keys(); it.hasNext(); ) {
                             String id = it.next();
-                            JSONObject jsonObject2 = jsonObject1.getJSONObject("id");
-                            arrayList_.add(jsonObject2.getString("url"));
-                            arrayList_.add(jsonObject2.getString("remark"));
-                            arrayList_.add(jsonObject2.getString("status"));
-                            hashMap.put(id, arrayList_);
+                            JSONObject orderData = message.getJSONObject(id);
+
+                            // 获取 URL、remark 和 status
+                            ArrayList<String> orderDetails = new ArrayList<>();
+                            orderDetails.add(orderData.optString("url", "no_url"));
+                            orderDetails.add(orderData.optString("remark", "no_remark"));
+                            orderDetails.add(orderData.optString("status", "未接单"));
+
+                            // 将数据存入结果哈希表
+                            hashMap.put(id, orderDetails);
                         }
                         return hashMap;
                     }
@@ -68,8 +72,9 @@ public final class MaterialDao {
             }
         }
 
-        arrayList.add("ConnectionFailed");
-        hashMap.put("error",arrayList);
+        ArrayList<String> connectionFailed = new ArrayList<>();
+        connectionFailed.add("ConnectionFailed");
+        hashMap.put("error", connectionFailed);
         return hashMap;
     }
 

@@ -13,7 +13,6 @@ import android.widget.Switch;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.cloudchat_user.R;
-import master.flame.danmaku.controller.IDanmakuView;
 import master.flame.danmaku.controller.DrawHandler;
 import master.flame.danmaku.danmaku.model.*;
 import master.flame.danmaku.danmaku.model.android.DanmakuContext;

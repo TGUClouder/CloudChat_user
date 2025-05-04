@@ -109,7 +109,7 @@ public class SelectOptionsDialogFragment extends DialogFragment {
         builder.setTitle("选择具体年级")
                 .setItems(grades, (dialog, which) -> {
                     selectedGradeLevel = grades[which]; // 保存具体年级
-                    showSubjectOptions(); // 自动触发科目选择
+//                    showSubjectOptions(); // 自动触发科目选择
                 });
         builder.show();
     }

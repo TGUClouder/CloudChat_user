@@ -40,7 +40,7 @@
         android:layout_marginStart="30dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        android:src="@drawable/shadows"
+        android:src="@drawable/live"
         />
 
 <!--    &lt;!&ndash; 环形 ProgressBar &ndash;&gt;-->

@@ -46,7 +46,7 @@ public class PlayerActivity extends AppCompatActivity {
 
     private ExoPlayer exoPlayer;
     private PlayerView playerView;
-    private String FLV_URL = "http://182.92.183.192:8080/live/livestream.flv";
+    private String FLV_URL = "http://59.110.173.159:8080/live/livestream.flv";
 
     private DanmakuView danmakuView;
     private DanmakuContext danmakuContext;
@@ -87,7 +87,7 @@ public class PlayerActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String mode = intent.getStringExtra("mode");
         if (mode != null && mode.equals("replay")) {
-            FLV_URL = "http://182.92.183.192/live/" + intent.getStringExtra("download_url");
+            FLV_URL = "http://59.110.173.159/live/" + intent.getStringExtra("download_url");
             Toast.makeText(this, FLV_URL, Toast.LENGTH_SHORT).show();
         }
 

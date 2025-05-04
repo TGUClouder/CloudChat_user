@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:fitsSystemWindows="true"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,38 +9,25 @@
     android:padding="10dp"
     tools:context=".ui.interactive_lecture.DanmakuFragment">
 
-    <!-- 弹幕开关 -->
-    <Switch
-        android:id="@+id/switch_danmu"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="弹幕开关"
-        android:checked="true"
-        android:layout_marginBottom="10dp"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
 
-
-    <FrameLayout
-        android:id="@+id/danmaku_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/black">
-        <!-- DanmakuView -->
-        <master.flame.danmaku.ui.widget.DanmakuView
-            android:id="@+id/danmaku_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="70dp"
+        android:layout_gravity="bottom"
         >
+        <!-- 弹幕开关 -->
+        <Switch
+            android:id="@+id/switch_danmu"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="弹幕开关"
+            android:checked="true"
+            android:layout_marginBottom="10dp"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
         <EditText
             android:id="@+id/et_danmu_input"
@@ -59,4 +46,13 @@
             android:layout_marginStart="8dp"/>
     </LinearLayout>
 
-</LinearLayout>
+
+    <!-- DanmakuView -->
+    <master.flame.danmaku.ui.widget.DanmakuView
+        android:id="@+id/danmaku_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+
+
+</FrameLayout>
